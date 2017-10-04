@@ -1,15 +1,12 @@
-CC = gcc
-CFLAGS = -Wall
+CC = g++
+CFLAGS = -Wall -std=c++11
 
 all: run
 
-run: main.o station.o 
+run: main.o
 	$(CC) -o $@ $^
 
-main.o: main.cpp parameters.h
-	$(CC) -c $(CFLAGS) $<
-
-station.o: station.cpp station.h
+main.o: main.cpp
 	$(CC) -c $(CFLAGS) $<
 
 clean:
