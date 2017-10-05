@@ -5,8 +5,8 @@
 #include <random>
 
 #define DATA_FRAME_SIZE 1500 /* bytes */
-#define SLOT_DURATION 20.0 /* micro-seconds */
-#define SIFS_DURATION 20.0 /* micro-seconds */
+#define SLOT_DURATION 20 /* micro-seconds */
+#define SIFS_DURATION 20 /* micro-seconds */
 #define SIM_DURATION 10 /* seconds */
 #define CW_MAX 1024 /* slots */
 #define CW_0 4 /* slots */
@@ -14,7 +14,7 @@
 #define ACK_SIZE 30 /* bytes */
 #define RTS_SIZE 30 /* bytes */
 #define CTS_SIZE 30 /* bytes */
-#define DIFS_DURATION 40.0 /* micro-seconds */
+#define DIFS_DURATION 40 /* micro-seconds */
 
 #define NUM_RATES 4
 #define SLACK 200
@@ -26,9 +26,10 @@ typedef struct Node_struct {
 } Node;
 
 void ScenarioA_CSMA(Node* node1, Node* node2);
-void ScenarioA_VCS();
-void ScenarioB_CSMA();
-void ScenarioB_VCS();
+void ScenarioA_VCS(Node* node1, Node* node2);
+void ScenarioB_CSMA(Node* node1, Node* node2);
+void ScenarioB_VCS(Node* node1, Node* node2);
+int Get_Backoff(void);
 Node* Get_Packet_Dist(int rates[]);
 
 int main(){
@@ -37,7 +38,7 @@ int main(){
     
     /* Establishing the nodes and packet data */
     Node* A = Get_Packet_Dist(Frame_Rates);
-    Node* A = Get_Packet_Dist(Frame_Rates);
+    Node* C = Get_Packet_Dist(Frame_Rates);
     
     /* TEST SIMULATIONS */
     ScenarioA_CSMA(A, C);
@@ -49,20 +50,24 @@ int main(){
 }
 
 void ScenarioA_CSMA(Node* node1, Node* node2){
-    
+    int Clock;
     
 }
 
 void ScenarioA_VCS(Node* node1, Node* node2){
-    
+    int Clock;
 }
 
 void ScenarioB_CSMA(Node* node1, Node* node2){
-    
+    int Clock;
 }
 
 void ScenarioB_VCS(Node* node1, Node* node2){
-    
+    int Clock;
+}
+
+int Get_Backoff(){
+    return 0;
 }
 
 /*
