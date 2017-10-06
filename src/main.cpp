@@ -25,7 +25,6 @@ typedef struct Node_struct {
     int* packet_arrivals[NUM_RATES];
     int dist_len[NUM_RATES];
     int packet_success[NUM_RATES];
-    int packet_collision[NUM_RATES];
 } Node;
 
 void ScenarioA_CSMA(Node* nodeA, Node* nodeC);
@@ -45,9 +44,9 @@ int main(){
     
     /* TEST SIMULATIONS */
     ScenarioA_CSMA(A, C);
-    ScenarioA_VCS(A, C);
-    ScenarioB_CSMA(A, C);
-    ScenarioB_VCS(A, C);
+    //ScenarioA_VCS(A, C);
+    //ScenarioB_CSMA(A, C);
+    //ScenarioB_VCS(A, C);
 
 	return 0;
 }
@@ -64,44 +63,71 @@ void ScenarioA_CSMA(Node* nodeA, Node* nodeB){
         int curBackoffB = 0;
         int curCollisionsA = 0;
         int curCollisionsB = 0;
+        int totCollisions = 0;
         
         while(Clock < SIM_DURATION_CLOCK){
             
             /* Get start time of first pack */
             if(nodeA->packet_arrivals[i][curPacketA] < nodeB->packet_arrivals[i][curPacketB]){
-                Clock = nodeA->packet_arrivals[i][curPacketA];
-                curBackoffA = Get_Backoff(curCollisionsA); // Gets the backoff time
+                if(Clock < nodeA->packet_arrivals[i][curPacketA]){ // Check if next packet is ahead of clock
+                    Clock += nodeA->packet_arrivals[i][curPacketA] - Clock;
+                }
+                if(!curBackoffA){
+                    curBackoffA = Get_Backoff(curCollisionsA); // Gets the backoff time
+                }
+                int compPeriodA = DIFS_SIZE + curBackoffA; // Calculate competition period
                 
-                int compPeriodA = DIFS_SIZE + curBackoffA;
-                
-                if((Clock + compPeriodA) <= nodeB->packet_arrivals[i][curPacketB] - 1){  // No other packet able to collide
+                /* Check for competition cases: No possible competition or Collision/Packet race */
+                if((Clock + compPeriodA) <= nodeB->packet_arrivals[i][curPacketB] + 1){  // No other packet able to collide
                     Clock += compPeriodA + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE;
                     nodeA->packet_success[i]++; // successful packet transmit
                     curCollisionsA = 0;
                     curPacketA++;
-                }else{
+                }else{ /* Collision/Packet race */
                     curBackoffB = Get_Backoff(curCollisionsB);
-                    
                     int compPeriodB = DIFS_SIZE + curBackoffB;
+                    Clock += nodeB->packet_arrivals[i][curPacketB] - Clock;       // Getting location where both packets are
+                    compPeriodA -= nodeB->packet_arrivals[i][curPacketB] - Clock; // in the competition period
                     
-                    
-                    
-                    /* Check if there is collision */
-                    
-                    /* If no collison, send which packet wins */
-                    
+                    /* Check if there will be a collision */
+                    if(compPeriodA == compPeriodB){ /* Collision */
+                        Clock += compPeriodA + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE; // Increase clock to where ack
+                                                                                             // should be received
+                        curCollisionsA++; // Know there is a collision, update counters
+                        curCollisionsB++;
+                        totCollisions++;
+                    }else{ /* If no collison, send which packet wins */
+                        if(compPeriodA < compPeriodB){ // NodeA transmits first successfully
+                            Clock += compPeriodA + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE; // Advance clock till the
+                                                                                                 // end of transmission
+                            nodeA->packet_success[i]++; // successful packet transmit
+                            curCollisionsA = 0;
+                            curPacketA++;
+                            
+                            /* TODO: reduce backoff counter of packet that didnt send */
+                        }else{ // NodeB transmits first successfully
+                            Clock += compPeriodB + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE;
+                            nodeB->packet_success[i]++; // successful packet transmit
+                            curCollisionsB = 0;
+                            curPacketB++;
+                            
+                            /* TODO: reduce backoff counter of packet that didnt send */
+                        }
+                    }
                 }
                 
                 
             }else if(nodeA->packet_arrivals[i][curPacketA] > nodeB->packet_arrivals[i][curPacketB]){
-                Clock = nodeB->packet_arrivals[i][curPacketB];
+                if(Clock < nodeB->packet_arrivals[i][curPacketB]){ // Check if next packet is ahead of clock
+                    Clock += nodeA->packet_arrivals[i][curPacketA] - Clock;
+                }
                 curBackoffB = Get_Backoff(curCollisionsB); // Gets the backoff time
                 
                 int compPeriod = DIFS_SIZE + curBackoffB;
                 
-                if((Clock + compPeriod) <= nodeA->packet_arrivals[i][curPacketA] - 1){  // No other packet able to collide
+                if((Clock + compPeriod) <= nodeA->packet_arrivals[i][curPacketA] + 1){  // No other packet able to collide
                     Clock += compPeriod + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE; // Advance clock
-                    nodaB->packet_success[i]++; // successful packet transmit
+                    nodeB->packet_success[i]++; // successful packet transmit
                     curCollisionsA = 0;
                     curPacketB++;
                 }else{
@@ -117,14 +143,6 @@ void ScenarioA_CSMA(Node* nodeA, Node* nodeB){
                 
                 
             }
-                /* Compare current packets */
-                
-                
-                /* Get lowest slot packet from the two */
-                
-                /* Perform CSMA with DIFS, etc. */
-            
-            
         }
     }
 }
