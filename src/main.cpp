@@ -21,6 +21,8 @@
 #define NUM_RATES 4
 #define SLACK 200
 
+#define NUM_TESTS 1000
+
 typedef struct Node_struct {
     int* packet_arrivals;
     int dist_len;
@@ -28,10 +30,10 @@ typedef struct Node_struct {
     int packet_collision;
 } Node;
 
-void ScenarioA_CSMA(Node* nodeA, Node* nodeC);
-void ScenarioA_VCS(Node* node1, Node* node2);
-void ScenarioB_CSMA(Node* node1, Node* node2);
-void ScenarioB_VCS(Node* node1, Node* node2);
+void ScenarioA_CSMA(Node* nodeA, Node* nodeB);
+void ScenarioA_VCS(Node* nodeA, Node* nodeB);
+void ScenarioB_CSMA(Node* nodeA, Node* nodeB);
+void ScenarioB_VCS(Node* nodeA, Node* nodeB);
 void Data_toFile(char* filename);
 int Get_Backoff(int fails);
 Node* Get_Packet_Dist(int rate);
@@ -43,7 +45,7 @@ int main(){
     unsigned long AvgSuccessC[NUM_RATES] = {0, 0, 0, 0};
     int j = 1;
     
-    for(j = 0; j < 1000; j++){
+    for(j = 0; j < NUM_TESTS; j++){
         for(int i = 0; i < NUM_RATES; i++){
             /* Establishing the nodes and packet data */
             Node* A = Get_Packet_Dist(Frame_Rates[i]);
@@ -246,43 +248,534 @@ void ScenarioA_CSMA(Node* nodeA, Node* nodeB){
     
 }
 
-void ScenarioA_VCS(Node* node1, Node* node2){
+void ScenarioA_VCS(Node* nodeA, Node* nodeB){
     srand(time(NULL)); // Seed the backoff time generator
     
-    /* Test all rates */
-    for(int i = 0; i < NUM_RATES; i++){
-        int Clock = 0;
+    int Clock = 0;
+    int curPacketA = 0;
+    int curPacketB = 0;
+    int curBackoffA = 0;
+    int curBackoffB = 0;
+    int curCollisionsA = 0;
+    int curCollisionsB = 0;
+    int totCollisions = 0;
+    int packet_successA = 0;
+    int packet_successB = 0;
+    
+    while(Clock < SIM_DURATION_CLOCK){
         
-        
-        
-        
-        
-        
+        /* Checks if NodeA has a packet that comes first */
+        if(nodeA->packet_arrivals[curPacketA] < nodeB->packet_arrivals[curPacketB]){
+            if(Clock < nodeA->packet_arrivals[curPacketA]){ // Check if next packet is ahead of clock
+                Clock += nodeA->packet_arrivals[curPacketA] - Clock;
+            }
+            if(!curBackoffA){
+                curBackoffA = Get_Backoff(curCollisionsA); // Gets the backoff time
+            }
+            int compPeriodA = DIFS_SIZE + curBackoffA; // Calculate competition period
+            
+            /* Check for competition cases: No possible competition or Collision/Packet race */
+            if((Clock + compPeriodA) <= nodeB->packet_arrivals[curPacketB] + 1){  // No other packet able to collide
+                Clock += compPeriodA + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE;
+                packet_successA++; // successful packet transmit
+                curCollisionsA = 0;
+                curPacketA++;
+            }else{ /* Collision/Packet race */
+                curBackoffB = Get_Backoff(curCollisionsB);
+                int compPeriodB = DIFS_SIZE + curBackoffB;
+                int compDiff = nodeB->packet_arrivals[curPacketB] - Clock;
+                Clock += compDiff; // Getting location where both packets are in the competition period
+                compPeriodA -= compDiff; // Removing time from the compPeriod of packet that entered period first
+                
+                /* Check if there will be a collision */
+                if(compPeriodA == compPeriodB){ /* Collision */
+                    Clock += compPeriodA + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE; // Increase clock to where ack should be received
+                    curCollisionsA++; // Know there is a collision, update counters
+                    curCollisionsB++;
+                    totCollisions++;
+                }else{ /* If no collison, send which packet wins */
+                    if(compPeriodA < compPeriodB){ // NodeA transmits first successfully
+                        Clock += compPeriodA + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE; // Advance clock till the end of transmission
+                        packet_successA++; // successful packet transmit
+                        curCollisionsA = 0;
+                        curPacketA++;
+                        
+                        /* Reduces backoff counter of packet that didnt send */
+                        if(compPeriodA - DIFS_SIZE > 0){
+                            curBackoffB -= compPeriodA - DIFS_SIZE;
+                        }
+                    }else{ // NodeB transmits first successfully
+                        Clock += compPeriodB + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE;
+                        packet_successB++; // successful packet transmit
+                        curCollisionsB = 0;
+                        curPacketB++;
+                        
+                        /* Reduces backoff counter of packet that didnt send */
+                        if(compPeriodB - DIFS_SIZE > 0){
+                            curBackoffA -= compPeriodB - DIFS_SIZE;
+                        }
+                    }
+                }
+            }
+            
+            /* Checks if NodeB has a packet that comes first */
+        }else if(nodeA->packet_arrivals[curPacketA] > nodeB->packet_arrivals[curPacketB]){
+            if(Clock < nodeB->packet_arrivals[curPacketB]){ // Check if next packet is ahead of clock
+                Clock += nodeB->packet_arrivals[curPacketB] - Clock;
+            }
+            if(!curBackoffB){
+                curBackoffB = Get_Backoff(curCollisionsB); // Gets the backoff time
+            }
+            int compPeriodB = DIFS_SIZE + curBackoffB; // Calculate competition period
+            
+            /* Check for competition cases: No possible competition or Collision/Packet race */
+            if((Clock + compPeriodB) <= nodeA->packet_arrivals[curPacketA] + 1){  // No other packet able to collide
+                Clock += compPeriodB + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE;
+                packet_successB++; // successful packet transmit
+                curCollisionsB = 0;
+                curPacketB++;
+            }else{ /* Collision/Packet race */
+                curBackoffA = Get_Backoff(curCollisionsA);
+                int compPeriodA = DIFS_SIZE + curBackoffA;
+                int compDiff = nodeA->packet_arrivals[curPacketA] - Clock;
+                Clock += compDiff; // Getting location where both packets are in the competition period
+                compPeriodA -= compDiff; // Removing time from the compPeriod of packet that entered period first
+                
+                /* Check if there will be a collision */
+                if(compPeriodB == compPeriodA){ /* Collision */
+                    Clock += compPeriodB + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE; // Increase clock to where ack should be received
+                    curCollisionsB++; // Know there is a collision, update counters
+                    curCollisionsA++;
+                    totCollisions++;
+                }else{ /* If no collison, send which packet wins */
+                    if(compPeriodB < compPeriodA){ // NodeB transmits first successfully
+                        Clock += compPeriodB + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE; // Advance clock till the end of transmission
+                        packet_successB++; // successful packet transmit
+                        curCollisionsB = 0;
+                        curPacketB++;
+                        
+                        /* Reduces backoff counter of packet that didnt send */
+                        if(compPeriodB - DIFS_SIZE > 0){
+                            curBackoffA -= compPeriodB - DIFS_SIZE;
+                        }
+                    }else{ // NodeA transmits first successfully
+                        Clock += compPeriodA + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE;
+                        packet_successA++; // successful packet transmit
+                        curCollisionsA = 0;
+                        curPacketA++;
+                        
+                        /* Reduces backoff counter of packet that didnt send */
+                        if(compPeriodA - DIFS_SIZE > 0){
+                            curBackoffB -= compPeriodA - DIFS_SIZE;
+                        }
+                    }
+                }
+            }
+            
+            /* There is a tie and boths nodes have a packet that comes at the same time */
+        }else{
+            if(Clock < nodeA->packet_arrivals[curPacketA]){ // Check if next packet is ahead of clock
+                Clock += nodeA->packet_arrivals[curPacketA] - Clock;
+            }
+            if(!curBackoffA)
+                curBackoffA = Get_Backoff(curCollisionsA); // Gets the backoff time
+            if(!curBackoffB)
+                curBackoffB = Get_Backoff(curCollisionsB);
+            
+            int compPeriodA = curBackoffA;
+            int compPeriodB = curBackoffB;
+            Clock += DIFS_SIZE; // Getting location where both packets are in the competition period
+            
+            /* Check if there will be a collision */
+            if(compPeriodB == compPeriodA){ /* Collision */
+                Clock += compPeriodB + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE; // Increase clock to where ack should be received
+                curCollisionsB++; // Know there is a collision, update counters
+                curCollisionsA++;
+                totCollisions++;
+            }else{ /* If no collison, send which packet wins */
+                if(compPeriodB < compPeriodA){ // NodeB transmits first successfully
+                    Clock += compPeriodB + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE; // Advance clock till the end of transmission
+                    packet_successB++; // successful packet transmit
+                    curCollisionsB = 0;
+                    curPacketB++;
+                    
+                    /* Reduces backoff counter of packet that didnt send */
+                    curBackoffA -= compPeriodB;
+                }else{ // NodeA transmits first successfully
+                    Clock += compPeriodA + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE;
+                    packet_successA++; // successful packet transmit
+                    curCollisionsA = 0;
+                    curPacketA++;
+                    
+                    /* Reduces backoff counter of packet that didnt send */
+                    curBackoffB -= compPeriodA;
+                }
+            }
+        }
     }
+    
+    //printf("\n\nNodeA Success: %d\n", packet_successA);
+    //printf("NodeB Success: %d\n", packet_successB);
+    //printf("Total Collisions: %d\n\n", totCollisions);
+    
+    nodeA->packet_success = packet_successA;
+    nodeB->packet_success = packet_successB;
+    nodeA->packet_collision = totCollisions;
+    nodeB->packet_collision = totCollisions;
+
+}
+
+void ScenarioB_CSMA(Node* nodeA, Node* nodeB){
+    srand(time(NULL)); // Seed the backoff time generator
+    
+    int Clock = 0;
+    int curPacketA = 0;
+    int curPacketB = 0;
+    int curBackoffA = 0;
+    int curBackoffB = 0;
+    int curCollisionsA = 0;
+    int curCollisionsB = 0;
+    int totCollisions = 0;
+    int packet_successA = 0;
+    int packet_successB = 0;
+    
+    while(Clock < SIM_DURATION_CLOCK){
+        
+        /* Checks if NodeA has a packet that comes first */
+        if(nodeA->packet_arrivals[curPacketA] < nodeB->packet_arrivals[curPacketB]){
+            if(Clock < nodeA->packet_arrivals[curPacketA]){ // Check if next packet is ahead of clock
+                Clock += nodeA->packet_arrivals[curPacketA] - Clock;
+            }
+            if(!curBackoffA){
+                curBackoffA = Get_Backoff(curCollisionsA); // Gets the backoff time
+            }
+            int compPeriodA = DIFS_SIZE + curBackoffA; // Calculate competition period
+            
+            /* Check for competition cases: No possible competition or Collision/Packet race */
+            if((Clock + compPeriodA) <= nodeB->packet_arrivals[curPacketB] + 1){  // No other packet able to collide
+                Clock += compPeriodA + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE;
+                packet_successA++; // successful packet transmit
+                curCollisionsA = 0;
+                curPacketA++;
+            }else{ /* Collision/Packet race */
+                curBackoffB = Get_Backoff(curCollisionsB);
+                int compPeriodB = DIFS_SIZE + curBackoffB;
+                int compDiff = nodeB->packet_arrivals[curPacketB] - Clock;
+                Clock += compDiff; // Getting location where both packets are in the competition period
+                compPeriodA -= compDiff; // Removing time from the compPeriod of packet that entered period first
+                
+                /* Check if there will be a collision */
+                if(compPeriodA == compPeriodB){ /* Collision */
+                    Clock += compPeriodA + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE; // Increase clock to where ack should be received
+                    curCollisionsA++; // Know there is a collision, update counters
+                    curCollisionsB++;
+                    totCollisions++;
+                }else{ /* If no collison, send which packet wins */
+                    if(compPeriodA < compPeriodB){ // NodeA transmits first successfully
+                        Clock += compPeriodA + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE; // Advance clock till the end of transmission
+                        packet_successA++; // successful packet transmit
+                        curCollisionsA = 0;
+                        curPacketA++;
+                        
+                        /* Reduces backoff counter of packet that didnt send */
+                        if(compPeriodA - DIFS_SIZE > 0){
+                            curBackoffB -= compPeriodA - DIFS_SIZE;
+                        }
+                    }else{ // NodeB transmits first successfully
+                        Clock += compPeriodB + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE;
+                        packet_successB++; // successful packet transmit
+                        curCollisionsB = 0;
+                        curPacketB++;
+                        
+                        /* Reduces backoff counter of packet that didnt send */
+                        if(compPeriodB - DIFS_SIZE > 0){
+                            curBackoffA -= compPeriodB - DIFS_SIZE;
+                        }
+                    }
+                }
+            }
+            
+            /* Checks if NodeB has a packet that comes first */
+        }else if(nodeA->packet_arrivals[curPacketA] > nodeB->packet_arrivals[curPacketB]){
+            if(Clock < nodeB->packet_arrivals[curPacketB]){ // Check if next packet is ahead of clock
+                Clock += nodeB->packet_arrivals[curPacketB] - Clock;
+            }
+            if(!curBackoffB){
+                curBackoffB = Get_Backoff(curCollisionsB); // Gets the backoff time
+            }
+            int compPeriodB = DIFS_SIZE + curBackoffB; // Calculate competition period
+            
+            /* Check for competition cases: No possible competition or Collision/Packet race */
+            if((Clock + compPeriodB) <= nodeA->packet_arrivals[curPacketA] + 1){  // No other packet able to collide
+                Clock += compPeriodB + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE;
+                packet_successB++; // successful packet transmit
+                curCollisionsB = 0;
+                curPacketB++;
+            }else{ /* Collision/Packet race */
+                curBackoffA = Get_Backoff(curCollisionsA);
+                int compPeriodA = DIFS_SIZE + curBackoffA;
+                int compDiff = nodeA->packet_arrivals[curPacketA] - Clock;
+                Clock += compDiff; // Getting location where both packets are in the competition period
+                compPeriodA -= compDiff; // Removing time from the compPeriod of packet that entered period first
+                
+                /* Check if there will be a collision */
+                if(compPeriodB == compPeriodA){ /* Collision */
+                    Clock += compPeriodB + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE; // Increase clock to where ack should be received
+                    curCollisionsB++; // Know there is a collision, update counters
+                    curCollisionsA++;
+                    totCollisions++;
+                }else{ /* If no collison, send which packet wins */
+                    if(compPeriodB < compPeriodA){ // NodeB transmits first successfully
+                        Clock += compPeriodB + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE; // Advance clock till the end of transmission
+                        packet_successB++; // successful packet transmit
+                        curCollisionsB = 0;
+                        curPacketB++;
+                        
+                        /* Reduces backoff counter of packet that didnt send */
+                        if(compPeriodB - DIFS_SIZE > 0){
+                            curBackoffA -= compPeriodB - DIFS_SIZE;
+                        }
+                    }else{ // NodeA transmits first successfully
+                        Clock += compPeriodA + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE;
+                        packet_successA++; // successful packet transmit
+                        curCollisionsA = 0;
+                        curPacketA++;
+                        
+                        /* Reduces backoff counter of packet that didnt send */
+                        if(compPeriodA - DIFS_SIZE > 0){
+                            curBackoffB -= compPeriodA - DIFS_SIZE;
+                        }
+                    }
+                }
+            }
+            
+            /* There is a tie and boths nodes have a packet that comes at the same time */
+        }else{
+            if(Clock < nodeA->packet_arrivals[curPacketA]){ // Check if next packet is ahead of clock
+                Clock += nodeA->packet_arrivals[curPacketA] - Clock;
+            }
+            if(!curBackoffA)
+                curBackoffA = Get_Backoff(curCollisionsA); // Gets the backoff time
+            if(!curBackoffB)
+                curBackoffB = Get_Backoff(curCollisionsB);
+            
+            int compPeriodA = curBackoffA;
+            int compPeriodB = curBackoffB;
+            Clock += DIFS_SIZE; // Getting location where both packets are in the competition period
+            
+            /* Check if there will be a collision */
+            if(compPeriodB == compPeriodA){ /* Collision */
+                Clock += compPeriodB + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE; // Increase clock to where ack should be received
+                curCollisionsB++; // Know there is a collision, update counters
+                curCollisionsA++;
+                totCollisions++;
+            }else{ /* If no collison, send which packet wins */
+                if(compPeriodB < compPeriodA){ // NodeB transmits first successfully
+                    Clock += compPeriodB + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE; // Advance clock till the end of transmission
+                    packet_successB++; // successful packet transmit
+                    curCollisionsB = 0;
+                    curPacketB++;
+                    
+                    /* Reduces backoff counter of packet that didnt send */
+                    curBackoffA -= compPeriodB;
+                }else{ // NodeA transmits first successfully
+                    Clock += compPeriodA + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE;
+                    packet_successA++; // successful packet transmit
+                    curCollisionsA = 0;
+                    curPacketA++;
+                    
+                    /* Reduces backoff counter of packet that didnt send */
+                    curBackoffB -= compPeriodA;
+                }
+            }
+        }
+    }
+    
+    //printf("\n\nNodeA Success: %d\n", packet_successA);
+    //printf("NodeB Success: %d\n", packet_successB);
+    //printf("Total Collisions: %d\n\n", totCollisions);
+    
+    nodeA->packet_success = packet_successA;
+    nodeB->packet_success = packet_successB;
+    nodeA->packet_collision = totCollisions;
+    nodeB->packet_collision = totCollisions;
     
 }
 
-void ScenarioB_CSMA(Node* node1, Node* node2){
+void ScenarioB_VCS(Node* nodeA, Node* nodeB){
     srand(time(NULL)); // Seed the backoff time generator
     
-    /* Test all rates */
-    for(int i = 0; i < NUM_RATES; i++){
-        int Clock = 0;
+    int Clock = 0;
+    int curPacketA = 0;
+    int curPacketB = 0;
+    int curBackoffA = 0;
+    int curBackoffB = 0;
+    int curCollisionsA = 0;
+    int curCollisionsB = 0;
+    int totCollisions = 0;
+    int packet_successA = 0;
+    int packet_successB = 0;
+    
+    while(Clock < SIM_DURATION_CLOCK){
         
-        
+        /* Checks if NodeA has a packet that comes first */
+        if(nodeA->packet_arrivals[curPacketA] < nodeB->packet_arrivals[curPacketB]){
+            if(Clock < nodeA->packet_arrivals[curPacketA]){ // Check if next packet is ahead of clock
+                Clock += nodeA->packet_arrivals[curPacketA] - Clock;
+            }
+            if(!curBackoffA){
+                curBackoffA = Get_Backoff(curCollisionsA); // Gets the backoff time
+            }
+            int compPeriodA = DIFS_SIZE + curBackoffA; // Calculate competition period
+            
+            /* Check for competition cases: No possible competition or Collision/Packet race */
+            if((Clock + compPeriodA) <= nodeB->packet_arrivals[curPacketB] + 1){  // No other packet able to collide
+                Clock += compPeriodA + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE;
+                packet_successA++; // successful packet transmit
+                curCollisionsA = 0;
+                curPacketA++;
+            }else{ /* Collision/Packet race */
+                curBackoffB = Get_Backoff(curCollisionsB);
+                int compPeriodB = DIFS_SIZE + curBackoffB;
+                int compDiff = nodeB->packet_arrivals[curPacketB] - Clock;
+                Clock += compDiff; // Getting location where both packets are in the competition period
+                compPeriodA -= compDiff; // Removing time from the compPeriod of packet that entered period first
+                
+                /* Check if there will be a collision */
+                if(compPeriodA == compPeriodB){ /* Collision */
+                    Clock += compPeriodA + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE; // Increase clock to where ack should be received
+                    curCollisionsA++; // Know there is a collision, update counters
+                    curCollisionsB++;
+                    totCollisions++;
+                }else{ /* If no collison, send which packet wins */
+                    if(compPeriodA < compPeriodB){ // NodeA transmits first successfully
+                        Clock += compPeriodA + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE; // Advance clock till the end of transmission
+                        packet_successA++; // successful packet transmit
+                        curCollisionsA = 0;
+                        curPacketA++;
+                        
+                        /* Reduces backoff counter of packet that didnt send */
+                        if(compPeriodA - DIFS_SIZE > 0){
+                            curBackoffB -= compPeriodA - DIFS_SIZE;
+                        }
+                    }else{ // NodeB transmits first successfully
+                        Clock += compPeriodB + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE;
+                        packet_successB++; // successful packet transmit
+                        curCollisionsB = 0;
+                        curPacketB++;
+                        
+                        /* Reduces backoff counter of packet that didnt send */
+                        if(compPeriodB - DIFS_SIZE > 0){
+                            curBackoffA -= compPeriodB - DIFS_SIZE;
+                        }
+                    }
+                }
+            }
+            
+            /* Checks if NodeB has a packet that comes first */
+        }else if(nodeA->packet_arrivals[curPacketA] > nodeB->packet_arrivals[curPacketB]){
+            if(Clock < nodeB->packet_arrivals[curPacketB]){ // Check if next packet is ahead of clock
+                Clock += nodeB->packet_arrivals[curPacketB] - Clock;
+            }
+            if(!curBackoffB){
+                curBackoffB = Get_Backoff(curCollisionsB); // Gets the backoff time
+            }
+            int compPeriodB = DIFS_SIZE + curBackoffB; // Calculate competition period
+            
+            /* Check for competition cases: No possible competition or Collision/Packet race */
+            if((Clock + compPeriodB) <= nodeA->packet_arrivals[curPacketA] + 1){  // No other packet able to collide
+                Clock += compPeriodB + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE;
+                packet_successB++; // successful packet transmit
+                curCollisionsB = 0;
+                curPacketB++;
+            }else{ /* Collision/Packet race */
+                curBackoffA = Get_Backoff(curCollisionsA);
+                int compPeriodA = DIFS_SIZE + curBackoffA;
+                int compDiff = nodeA->packet_arrivals[curPacketA] - Clock;
+                Clock += compDiff; // Getting location where both packets are in the competition period
+                compPeriodA -= compDiff; // Removing time from the compPeriod of packet that entered period first
+                
+                /* Check if there will be a collision */
+                if(compPeriodB == compPeriodA){ /* Collision */
+                    Clock += compPeriodB + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE; // Increase clock to where ack should be received
+                    curCollisionsB++; // Know there is a collision, update counters
+                    curCollisionsA++;
+                    totCollisions++;
+                }else{ /* If no collison, send which packet wins */
+                    if(compPeriodB < compPeriodA){ // NodeB transmits first successfully
+                        Clock += compPeriodB + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE; // Advance clock till the end of transmission
+                        packet_successB++; // successful packet transmit
+                        curCollisionsB = 0;
+                        curPacketB++;
+                        
+                        /* Reduces backoff counter of packet that didnt send */
+                        if(compPeriodB - DIFS_SIZE > 0){
+                            curBackoffA -= compPeriodB - DIFS_SIZE;
+                        }
+                    }else{ // NodeA transmits first successfully
+                        Clock += compPeriodA + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE;
+                        packet_successA++; // successful packet transmit
+                        curCollisionsA = 0;
+                        curPacketA++;
+                        
+                        /* Reduces backoff counter of packet that didnt send */
+                        if(compPeriodA - DIFS_SIZE > 0){
+                            curBackoffB -= compPeriodA - DIFS_SIZE;
+                        }
+                    }
+                }
+            }
+            
+            /* There is a tie and boths nodes have a packet that comes at the same time */
+        }else{
+            if(Clock < nodeA->packet_arrivals[curPacketA]){ // Check if next packet is ahead of clock
+                Clock += nodeA->packet_arrivals[curPacketA] - Clock;
+            }
+            if(!curBackoffA)
+                curBackoffA = Get_Backoff(curCollisionsA); // Gets the backoff time
+            if(!curBackoffB)
+                curBackoffB = Get_Backoff(curCollisionsB);
+            
+            int compPeriodA = curBackoffA;
+            int compPeriodB = curBackoffB;
+            Clock += DIFS_SIZE; // Getting location where both packets are in the competition period
+            
+            /* Check if there will be a collision */
+            if(compPeriodB == compPeriodA){ /* Collision */
+                Clock += compPeriodB + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE; // Increase clock to where ack should be received
+                curCollisionsB++; // Know there is a collision, update counters
+                curCollisionsA++;
+                totCollisions++;
+            }else{ /* If no collison, send which packet wins */
+                if(compPeriodB < compPeriodA){ // NodeB transmits first successfully
+                    Clock += compPeriodB + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE; // Advance clock till the end of transmission
+                    packet_successB++; // successful packet transmit
+                    curCollisionsB = 0;
+                    curPacketB++;
+                    
+                    /* Reduces backoff counter of packet that didnt send */
+                    curBackoffA -= compPeriodB;
+                }else{ // NodeA transmits first successfully
+                    Clock += compPeriodA + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE;
+                    packet_successA++; // successful packet transmit
+                    curCollisionsA = 0;
+                    curPacketA++;
+                    
+                    /* Reduces backoff counter of packet that didnt send */
+                    curBackoffB -= compPeriodA;
+                }
+            }
+        }
     }
     
-}
-
-void ScenarioB_VCS(Node* node1, Node* node2){
-    srand(time(NULL)); // Seed the backoff time generator
+    //printf("\n\nNodeA Success: %d\n", packet_successA);
+    //printf("NodeB Success: %d\n", packet_successB);
+    //printf("Total Collisions: %d\n\n", totCollisions);
     
-    /* Test all rates */
-    for(int i = 0; i < NUM_RATES; i++){
-        int Clock = 0;
-        
-        
-    }
+    nodeA->packet_success = packet_successA;
+    nodeB->packet_success = packet_successB;
+    nodeA->packet_collision = totCollisions;
+    nodeB->packet_collision = totCollisions;
 }
 
 int Get_Backoff(int fails){
