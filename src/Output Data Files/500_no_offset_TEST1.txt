@@ -1,0 +1,176 @@
+
+
+
+				START Scenario A: CSMA
+RATE: 50 frames/sec
+	Throughput Avg A: 0.598800 Mbps
+	Throughput Avg C: 0.598800 Mbps
+	Fairness Index Avg: 0.998990 A/B
+	Collision Avg: 4 Packets
+	Slots Used Avg A: 51440
+	Slots Used Avg C: 51492
+	Success Avg A: 499 Packets
+	Success Avg C: 499 Packets
+
+RATE: 100 frames/sec
+	Throughput Avg A: 1.196400 Mbps
+	Throughput Avg C: 1.198800 Mbps
+	Fairness Index Avg: 0.998145 A/B
+	Collision Avg: 39 Packets
+	Slots Used Avg A: 102783
+	Slots Used Avg C: 102974
+	Success Avg A: 997 Packets
+	Success Avg C: 999 Packets
+
+RATE: 200 frames/sec
+	Throughput Avg A: 2.379600 Mbps
+	Throughput Avg C: 2.382000 Mbps
+	Fairness Index Avg: 0.998914 A/B
+	Collision Avg: 564 Packets
+	Slots Used Avg A: 204288
+	Slots Used Avg C: 204510
+	Success Avg A: 1983 Packets
+	Success Avg C: 1985 Packets
+
+RATE: 300 frames/sec
+	Throughput Avg A: 2.636400 Mbps
+	Throughput Avg C: 2.461200 Mbps
+	Fairness Index Avg: 1.071355 A/B
+	Collision Avg: 439 Packets
+	Slots Used Avg A: 226357
+	Slots Used Avg C: 211281
+	Success Avg A: 2197 Packets
+	Success Avg C: 2051 Packets
+
+
+
+
+				START Scenario A: VCS
+RATE: 50 frames/sec
+	Throughput Avg A: 0.598800 Mbps
+	Throughput Avg C: 0.598800 Mbps
+	Fairness Index Avg: 0.999009 A/B
+	Collision Avg: 4 Packets
+	Slots Used Avg A: 54437
+	Slots Used Avg C: 54491
+	Success Avg A: 499 Packets
+	Success Avg C: 499 Packets
+
+RATE: 100 frames/sec
+	Throughput Avg A: 1.196400 Mbps
+	Throughput Avg C: 1.198800 Mbps
+	Fairness Index Avg: 0.998155 A/B
+	Collision Avg: 41 Packets
+	Slots Used Avg A: 108771
+	Slots Used Avg C: 108972
+	Success Avg A: 997 Packets
+	Success Avg C: 999 Packets
+
+RATE: 200 frames/sec
+	Throughput Avg A: 2.394000 Mbps
+	Throughput Avg C: 2.389200 Mbps
+	Fairness Index Avg: 1.001889 A/B
+	Collision Avg: 495 Packets
+	Slots Used Avg A: 217506
+	Slots Used Avg C: 217096
+	Success Avg A: 1995 Packets
+	Success Avg C: 1991 Packets
+
+RATE: 300 frames/sec
+	Throughput Avg A: 2.751600 Mbps
+	Throughput Avg C: 2.533200 Mbps
+	Fairness Index Avg: 1.086250 A/B
+	Collision Avg: 464 Packets
+	Slots Used Avg A: 249945
+	Slots Used Avg C: 230099
+	Success Avg A: 2293 Packets
+	Success Avg C: 2111 Packets
+
+
+
+
+				START Scenario B: CSMA
+RATE: 50 frames/sec
+	Throughput Avg A: 0.597600 Mbps
+	Throughput Avg C: 0.598800 Mbps
+	Fairness Index Avg: 0.999047 A/B
+	Collision Avg: 654 Packets
+	Slots Used Avg A: 51392
+	Slots Used Avg C: 51441
+	Success Avg A: 498 Packets
+	Success Avg C: 499 Packets
+
+RATE: 100 frames/sec
+	Throughput Avg A: 1.191600 Mbps
+	Throughput Avg C: 1.192800 Mbps
+	Fairness Index Avg: 0.998604 A/B
+	Collision Avg: 1609 Packets
+	Slots Used Avg A: 102310
+	Slots Used Avg C: 102453
+	Success Avg A: 993 Packets
+	Success Avg C: 994 Packets
+
+RATE: 200 frames/sec
+	Throughput Avg A: 1.798800 Mbps
+	Throughput Avg C: 1.803600 Mbps
+	Fairness Index Avg: 0.997610 A/B
+	Collision Avg: 1544 Packets
+	Slots Used Avg A: 154474
+	Slots Used Avg C: 154844
+	Success Avg A: 1499 Packets
+	Success Avg C: 1503 Packets
+
+RATE: 300 frames/sec
+	Throughput Avg A: 1.831200 Mbps
+	Throughput Avg C: 1.851600 Mbps
+	Fairness Index Avg: 0.989099 A/B
+	Collision Avg: 1528 Packets
+	Slots Used Avg A: 157238
+	Slots Used Avg C: 158971
+	Success Avg A: 1526 Packets
+	Success Avg C: 1543 Packets
+
+
+
+
+				START Scenario B: VCS
+RATE: 50 frames/sec
+	Throughput Avg A: 0.598800 Mbps
+	Throughput Avg C: 0.598800 Mbps
+	Fairness Index Avg: 0.999019 A/B
+	Collision Avg: 41 Packets
+	Slots Used Avg A: 51940
+	Slots Used Avg C: 51991
+	Success Avg A: 499 Packets
+	Success Avg C: 499 Packets
+
+RATE: 100 frames/sec
+	Throughput Avg A: 1.196400 Mbps
+	Throughput Avg C: 1.198800 Mbps
+	Fairness Index Avg: 0.998144 A/B
+	Collision Avg: 298 Packets
+	Slots Used Avg A: 103779
+	Slots Used Avg C: 103972
+	Success Avg A: 997 Packets
+	Success Avg C: 999 Packets
+
+RATE: 200 frames/sec
+	Throughput Avg A: 2.389200 Mbps
+	Throughput Avg C: 2.384400 Mbps
+	Fairness Index Avg: 1.001790 A/B
+	Collision Avg: 1427 Packets
+	Slots Used Avg A: 207114
+	Slots Used Avg C: 206744
+	Success Avg A: 1991 Packets
+	Success Avg C: 1987 Packets
+
+RATE: 300 frames/sec
+	Throughput Avg A: 2.618400 Mbps
+	Throughput Avg C: 2.668800 Mbps
+	Fairness Index Avg: 0.981058 A/B
+	Collision Avg: 175 Packets
+	Slots Used Avg A: 227012
+	Slots Used Avg C: 231395
+	Success Avg A: 2182 Packets
+	Success Avg C: 2224 Packets
+
