@@ -1,5 +1,5 @@
 CC = g++
-CFLAGS = -Wall -std=c++11
+CFLAGS = -g -Wall -std=c++11
 
 all: run
 

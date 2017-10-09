@@ -74,7 +74,7 @@ int main(){
         AvgSuccessC[j] = 0;
         AvgThroughputA[j] = 0;
         AvgThroughputC[j] = 0;
-        AvgFairnessIndex[j] = 0;
+        AvgFairnessIndex[j] = 0.0;
         AvgSlotsUsedA[j] = 0;
         AvgSlotsUsedC[j] = 0;
         AvgCollision2[j] = 0;
@@ -82,7 +82,7 @@ int main(){
         AvgSuccessC2[j] = 0;
         AvgThroughputA2[j] = 0;
         AvgThroughputC2[j] = 0;
-        AvgFairnessIndex2[j] = 0;
+        AvgFairnessIndex2[j] = 0.0;
         AvgSlotsUsedA2[j] = 0;
         AvgSlotsUsedC2[j] = 0;
         
@@ -99,18 +99,13 @@ int main(){
             AvgPacketsA[i] = AvgPacketsA[i] + A->dist_len;
             AvgPacketsC[i] = AvgPacketsC[i] + C->dist_len;
             
-            double FairnessIndex;
-            
             /* TEST SIMULATIONS */
             //ScenarioA_CSMA(A, C);
             ScenarioB_CSMA(A, C);
             
-            FairnessIndex = ((double) A->slots_used / (double) C->slots_used); // Not an average
-            
             AvgSlotsUsedA[i] = AvgSlotsUsedA[i] + A->slots_used;
             AvgSlotsUsedC[i] = AvgSlotsUsedC[i] + C->slots_used;
             
-            AvgFairnessIndex[i] = AvgFairnessIndex[i] + FairnessIndex;
             AvgCollision[i] = AvgCollision[i] + A->packet_collision;
             AvgSuccessA[i] = AvgSuccessA[i] + A->packet_success;
             AvgSuccessC[i] = AvgSuccessC[i] + C->packet_success;
@@ -146,7 +141,7 @@ int main(){
         AvgCollision[k] = (AvgCollision[k] / j);
         AvgSuccessA[k] = (AvgSuccessA[k] / j);
         AvgSuccessC[k] = (AvgSuccessC[k] / j);
-        AvgFairnessIndex[k] = (AvgFairnessIndex[k] / (double) j);
+        AvgFairnessIndex[k] = ((double) AvgSlotsUsedA[k] / (double) AvgSlotsUsedC[k]);
         AvgSlotsUsedA[k] = (AvgSlotsUsedA[k] / j);
         AvgSlotsUsedC[k] = (AvgSlotsUsedC[k] / j);
         
@@ -885,6 +880,12 @@ void ScenarioB_CSMA(Node* nodeA, Node* nodeB){
     int curBackoffB = 0;
     int curPacketA = 0;
     int curPacketB = 0;
+    int beginCompPeriodA = 0;
+    int beginCompPeriodB = 0;
+    
+    int mustRetransA = 0;
+    int mustRetransB = 0;
+    
     
     int curCollisionsA = 0;
     int curCollisionsB = 0;
@@ -903,79 +904,77 @@ void ScenarioB_CSMA(Node* nodeA, Node* nodeB){
         
         /* Clock is ahead of both packets */
         if(Clock >= nodeA->packet_arrivals[curPacketA] && Clock >= nodeB->packet_arrivals[curPacketB]){
-#if DEBUG
-            printf("->>>>>>>>>CLock Ahead: %d\n", Clock);
-#endif
-            
-            int beginCompPeriodA = 0;
-            int beginCompPeriodB = 0;
             
             
-            /* Node A or Node B has started transmission process */
-            if((ClockA > 0 && ClockB == 0) || (ClockB > 0 && ClockA == 0)){
-                
-                /* Node A has started transmission process */
-                if(ClockB == 0){
-                    curBackoffB = Get_Backoff(curCollisionsB) + DIFS_SIZE; // Get backoff time for B;
-                    ClockB = Clock + curBackoffB + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE;
-                }
+            if(ClockB > 0 && ClockA == 0){
                 /* Node B has started transmission process */
-                if(ClockA == 0){
-                    curBackoffA = Get_Backoff(curCollisionsA) + DIFS_SIZE; // Get backoff time for A;
-                    ClockA = Clock + curBackoffA + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE;
+                curBackoffA = Get_Backoff(curCollisionsA) + DIFS_SIZE; // Get backoff time for A;
+                ClockA = Clock + curBackoffA + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE;
+                if(beginCompPeriodB == 0){
+                    beginCompPeriodB = Clock + curBackoffB;
                 }
-                beginCompPeriodB = Clock + curBackoffB;
                 beginCompPeriodA = Clock + curBackoffA;
-                
-#if DEBUG
-                printf("->>>>>>Stag>>>>>>>>>BackoffA: %d, BackoffB: %d\n", curBackoffA, curBackoffB);
-#endif
-                
+                /* Node A or Node B has started transmission process */
+            }else if(ClockA > 0 && ClockB == 0){
+                /* Node A has started transmission process */
+                curBackoffB = Get_Backoff(curCollisionsB) + DIFS_SIZE; // Get backoff time for B;
+                ClockB = Clock + curBackoffB + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE;
+                beginCompPeriodB = Clock + curBackoffB;
+                if(beginCompPeriodA == 0){
+                    beginCompPeriodA = Clock + curBackoffA;
+                }
             } /* B and A are starting transmission process */
             else{
-                
                 curBackoffA = Get_Backoff(curCollisionsA) + DIFS_SIZE; // Get backoff time for A
                 curBackoffB = Get_Backoff(curCollisionsB) + DIFS_SIZE; // Get backoff time for B
                 ClockA = Clock + curBackoffA + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE;
                 ClockB = Clock + curBackoffB + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE;
                 beginCompPeriodA = Clock + curBackoffA;
                 beginCompPeriodB = Clock + curBackoffB;
-                
-#if DEBUG
-                printf("->>>>>>>>>>>>>>>>>>>BackoffA: %d, BackoffB: %d\n", curBackoffA, curBackoffB);
-#endif
-
             }
+            
+            // NOT CONNECTED //
             
             /* Packet B finished before A without collision */
             if(ClockB <= beginCompPeriodA){
-                Clock = ClockB; // Update clock to end of transmission
-                ClockB = 0;
-                slots_usedB += DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE;
-                packet_successB++; // successful packet transmit
-                curCollisionsB = 0;
-                curBackoffB = Get_Backoff(curCollisionsB) + DIFS_SIZE; // Get backoff time for B;
-                curPacketB++;
-#if DEBUG
-                printf("->>>>>>>>>>>>>>>>SUCCESS B: %d\n", Clock);
-#endif
                 
+                if(mustRetransB == 0){
+                    Clock = ClockB; // Update clock to end of transmission
+                    ClockB = 0;
+                    slots_usedB += DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE;
+                    packet_successB++; // successful packet transmit
+                    curCollisionsB = 0;
+                    beginCompPeriodB = 0;
+                    curPacketB++;
+                }
+                else{
+                    Clock = ClockB;
+                    ClockB = 0;
+                    beginCompPeriodB = 0;
+                    curBackoffB = 0;
+                    mustRetransB = 0;
+                }
             } /* Packet A finished before B without collision */
             else if(ClockA <= beginCompPeriodB){
-                Clock = ClockA; // Update clock to end of transmission
-                ClockA = 0;
-                slots_usedA += DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE;
-                packet_successA++; // successful packet transmit
-                curCollisionsA = 0;
-                curBackoffA = Get_Backoff(curCollisionsA) + DIFS_SIZE;
-                curPacketA++;
-#if DEBUG
-                printf("->>>>>>>>>>>>>>>>SUCCESS A: %d\n", Clock);
-#endif
                 
+                if(mustRetransA == 0){
+                    Clock = ClockA; // Update clock to end of transmission
+                    ClockA = 0;
+                    slots_usedA += DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE;
+                    packet_successA++; // successful packet transmit
+                    curCollisionsA = 0;
+                    beginCompPeriodA = 0;
+                    curPacketA++;
+                }
+                else{
+                    Clock = ClockA;
+                    ClockA = 0;
+                    beginCompPeriodA = 0;
+                    curBackoffA = 0;
+                    mustRetransA = 0;
+                }
             } /* Collision */
             else{
-
                 // Update collision counters //
                 curCollisionsB++;
                 curCollisionsA++;
@@ -984,102 +983,91 @@ void ScenarioB_CSMA(Node* nodeA, Node* nodeB){
                 if(ClockA < ClockB){
                     Clock = ClockA;
                     ClockA = 0;
+                    beginCompPeriodA = 0;
                     curBackoffA = 0;
-#if DEBUG
-                    printf("->>>>>>>>>>>>>>>>COLLISION A finishes: %d\n", Clock);
-#endif
+                    mustRetransA = 0;
+                    mustRetransB = 1;
                 } /* B ends transmission first and receives no Ack */
                 else if(ClockB < ClockA){
                     Clock = ClockB;
                     ClockB = 0;
+                    beginCompPeriodB = 0;
                     curBackoffB = 0;
-#if DEBUG
-                    printf("->>>>>>>>>>>>>>>>COLLISION B finishes: %d\n", Clock);
-#endif
+                    mustRetransB = 0;
+                    mustRetransA = 1;
                 } /* They end at the same time */
                 else{
-                    Clock = ClockA;
+                    Clock = ClockB;
                     ClockA = 0;
                     ClockB = 0;
+                    beginCompPeriodA = 0;
+                    beginCompPeriodB = 0;
                     curBackoffA = 0;
                     curBackoffB = 0;
-#if DEBUG
-                    printf("->>>>>>>>>>>>>>>>COLLISION B tie: %d\n", Clock);
-#endif
                 }
-                
             }
         }
     
         /* Clock is ahead of nodeA packets and behind to nodeB packets */
         else if(Clock >= nodeA->packet_arrivals[curPacketA]){ // Jumps clock to end of a transmission or beginning of a competing packet from B
             
-#if DEBUG
-            printf("->>>>>>>>>CLock Ahead of A behind B: %d\n", Clock);
-#endif
-            curBackoffA = Get_Backoff(curCollisionsA) + DIFS_SIZE; // Get backoff time for A
-            ClockA = Clock + curBackoffA + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE; // End of transmission of A
+            /* Check if A is currently transmitting */
+            if(ClockA == 0){
+                curBackoffA = Get_Backoff(curCollisionsA) + DIFS_SIZE; // Get backoff time for A
+                ClockA = Clock + curBackoffA + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE; // End of transmission of A
+            }
+            
             int arrivalB = nodeB->packet_arrivals[curPacketB];
             
             /* Transmission of A will potentially collide with B */
             if(ClockA > arrivalB){
                 
-                if(arrivalB < Clock + curBackoffA){
+                if(arrivalB < beginCompPeriodA){
+                    curBackoffA = curBackoffA - (arrivalB - (beginCompPeriodA - curBackoffA)); // Reduces backoff time of A
+                }
+                else if(arrivalB < Clock + curBackoffA){
                     curBackoffA -= arrivalB - Clock; // Reduces backoff time of A
-                    
                 } /* Packet B arrives during data transmission of A */
                 else{
                     curBackoffA = 0; // Clear backoff time of A
                 }
-                
                 Clock = arrivalB; // Updates clock to where packet B comes
-                curBackoffB = Get_Backoff(curCollisionsB) + DIFS_SIZE; // Get backoff time for B
-#if DEBUG
-                printf("->>>>>>>>>>>>>>>>INTERFERENCE B: %d\n", Clock);
-#endif
             } /* A can transmit without collision */
             else{
                 Clock = ClockA; // Advance main clock
                 ClockA = 0;
                 slots_usedA += DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE;
                 packet_successA++; // successful packet transmit
+                beginCompPeriodA = 0;
                 curCollisionsA = 0;
                 curBackoffA = 0;
                 curPacketA++;
-#if DEBUG
-                printf("->>>>>>>>>>>>>>>>SUCCESS A: %d\n", Clock);
-#endif
             }
         }
     
         /* Clock is ahead of nodeB packets and behind to nodeA packets */
         else if(Clock >= nodeB->packet_arrivals[curPacketB]){ // Jumps clock to end of a transmission or beginning of a competing packet from A
-#if DEBUG
-            printf("->>>>>>>>>CLock Ahead of B behind A: %d\n", Clock);
-#endif
-            curBackoffB = Get_Backoff(curCollisionsB) + DIFS_SIZE; // Get backoff time for B
-            ClockB = Clock + curBackoffB + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE; // End of transmission of B
             
+            /* Check if B is currently transmitting */
+            if(ClockB == 0){
+                curBackoffB = Get_Backoff(curCollisionsB) + DIFS_SIZE; // Get backoff time for B
+                ClockB = Clock + curBackoffB + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE; // End of transmission of B
+            }
             int arrivalA = nodeA->packet_arrivals[curPacketA];
             
             /* Transmission of B will potentially collide with A */
             if(ClockB > arrivalA){
-                
                 /* Packet A arrives in DIFS time of B */
-                if(arrivalA < Clock + curBackoffB){
+                if(arrivalA < beginCompPeriodB){
+                    curBackoffB = curBackoffB - (arrivalA - (beginCompPeriodB - curBackoffB)); // Reduces backoff time of A
+                }
+                else if(arrivalA < Clock + curBackoffB){
                     curBackoffB -= arrivalA - Clock; // Reduces backoff time of B
-                    
                 } /* Packet A arrives during data transmission of B */
                 else{
                     curBackoffB = 0; // Clear backoff time of B
                 }
-                
                 Clock = arrivalA; // Updates clock to where packet A comes
-                curBackoffA = Get_Backoff(curCollisionsA) + DIFS_SIZE; // Get backoff time for A
-                
-#if DEBUG
-                printf("->>>>>>>>>>>>>>>>INTERFERENCE A: %d\n", Clock);
-#endif
             } /* B can transmit without collision */
             else{
                 Clock = ClockB; // Advance main clock
@@ -1087,12 +1075,9 @@ void ScenarioB_CSMA(Node* nodeA, Node* nodeB){
                 slots_usedB += DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE;
                 packet_successB++; // successful packet transmit
                 curCollisionsB = 0;
+                beginCompPeriodB = 0;
                 curBackoffB = 0;
                 curPacketB++;
-#if DEBUG
-                printf("->>>>>>>>>>>>>>>>SUCCESS B: %d\n", Clock);
-#endif
-                
             }
         }
         
@@ -1113,6 +1098,10 @@ void ScenarioB_CSMA(Node* nodeA, Node* nodeB){
             else{
                 Clock += (nodeA->packet_arrivals[curPacketA] - Clock); // Update clock to catch it up
             }
+            
+#if DEBUG
+            printf("->>>>>>>>10>>>>>>>>>>>>>>>>>>>>>>CLOCK UPDATE: %d\n", Clock);
+#endif
         }
     }
 
