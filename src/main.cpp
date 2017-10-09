@@ -38,7 +38,6 @@ void ScenarioA_CSMA(Node* nodeA, Node* nodeB);
 void ScenarioA_VCS(Node* nodeA, Node* nodeB);
 void ScenarioB_CSMA(Node* nodeA, Node* nodeB);
 void ScenarioB_VCS(Node* nodeA, Node* nodeB);
-void Data_toFile(char* filename);
 int Get_Backoff(int fails);
 Node* Get_Packet_Dist(int rate);
 
