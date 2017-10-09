@@ -226,32 +226,14 @@ void ScenarioA_CSMA(Node* nodeA, Node* nodeB){
     
     /* Loop till end of simulation */
     while(Clock < SIM_DURATION_CLOCK){
-    
-#if DEBUG
-        printf("\nNodeA: %d, NodeB: %d, CLock: %d\n", nodeA->packet_arrivals[curPacketA], nodeB->packet_arrivals[curPacketB], Clock);
-#endif
-        
         /* Clock is ahead of both packets */
         if(Clock >= nodeA->packet_arrivals[curPacketA] && Clock >= nodeB->packet_arrivals[curPacketB]){
             // DON'T UPDATE CLOCK
-#if DEBUG
-            printf("\t\t\t\tHERE: B equal A\n");
-            printf("CURRENT BACKOFF A(%d)\n", curBackoffA);
-#endif
             if(curBackoffA == 0){
                 curBackoffA = Get_Backoff(curCollisionsA); // Gets the backoff time
-#if DEBUG
-                printf("NEW BACKOFF A(%d)\n", curBackoffA);
-#endif
             }
-#if DEBUG
-            printf("CURRENT BACKOFF B(%d)\n", curBackoffB);
-#endif
             if(curBackoffB == 0){
                 curBackoffB = Get_Backoff(curCollisionsB);
-#if DEBUG
-                printf("NEW BACKOFF B(%d)\n", curBackoffB);
-#endif
             }
             
             int compPeriodA = curBackoffA;
@@ -261,9 +243,6 @@ void ScenarioA_CSMA(Node* nodeA, Node* nodeB){
             /* Check if there will be a collision */
             if(compPeriodB == compPeriodA){ /* Collision */
                 Clock = Clock + compPeriodB + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE; // Update clock to where ack should be received
-#if DEBUG
-                printf("\t\t----->COLLISION A equal B, CLOCK: %d\n", Clock);
-#endif
                 curBackoffA = 0;
                 curBackoffB = 0;
                 // There is a collision, update counters //
@@ -275,9 +254,6 @@ void ScenarioA_CSMA(Node* nodeA, Node* nodeB){
                 /* NodeB transmits first successfully */
                 if(compPeriodB < compPeriodA){
                     Clock = Clock + compPeriodB + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE; // Update clock till end of transmission
-#if DEBUG
-                    printf("\t\t->SUCCESS B, CLOCK: %d\n", Clock);
-#endif
                     slots_usedB += DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE;
                     packet_successB++; // successful packet transmit
                     curCollisionsB = 0;
@@ -289,9 +265,6 @@ void ScenarioA_CSMA(Node* nodeA, Node* nodeB){
                 } /* NodeA transmits first successfully */
                 else{
                     Clock = Clock + compPeriodA + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE; // Update clock till end of transmission
-#if DEBUG
-                    printf("\t\t->SUCCESS A, CLOCK: %d\n", Clock);
-#endif
                     slots_usedA += DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE;
                     packet_successA++; // successful packet transmit
                     curCollisionsA = 0;
@@ -309,24 +282,14 @@ void ScenarioA_CSMA(Node* nodeA, Node* nodeB){
         /* Clock is ahead of nodeA packets and behind to nodeB packets */
         else if(Clock >= nodeA->packet_arrivals[curPacketA]){
             // DON'T UPDATE CLOCK
-#if DEBUG
-            printf("\t\t\t\tHERE: A before B\n");
-            printf("CURRENT BACKOFF A(%d)\n", curBackoffA);
-#endif
             if(curBackoffA == 0){
                 curBackoffA = Get_Backoff(curCollisionsA); // Gets the backoff time for A
-#if DEBUG
-                printf("NEW BACKOFF A(%d)\n", curBackoffA);
-#endif
             }
             int compPeriodA = DIFS_SIZE + curBackoffA; // Calculate competition period for A
             
             /* No possible competition or Collision/Packet race */
             if((Clock + compPeriodA) <= (nodeB->packet_arrivals[curPacketB] - 1)){
                 Clock = Clock + compPeriodA + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE; // Update clock after transmission
-#if DEBUG
-                printf("\t\t->AB-SUCCESS A, CLOCK: %d\n", Clock);
-#endif
                 slots_usedA += DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE;
                 packet_successA++; // successful packet transmit
                 curCollisionsA = 0;
@@ -334,33 +297,17 @@ void ScenarioA_CSMA(Node* nodeA, Node* nodeB){
                 curPacketA++;
             } /* Collision/Packet race */
             else{
-#if DEBUG
-                printf("CURRENT BACKOFF B(%d)\n", curBackoffB);
-#endif
                 if(curBackoffB == 0){
                     curBackoffB = Get_Backoff(curCollisionsB); // Gets the backoff time for B
-#if DEBUG
-                    printf("NEW BACKOFF B(%d)\n", curBackoffB);
-#endif
-                    
                 }
                 int compPeriodB = DIFS_SIZE + curBackoffB;
-#if DEBUG
-                printf("Comp Period B: %d\n", compPeriodB);
-#endif
                 int compDiff = nodeB->packet_arrivals[curPacketB] - Clock;
-#if DEBUG
-                printf("NEVER SHOULD BE NEG: %d\n", compDiff);
-#endif
                 Clock += compDiff; // Updating clock to beginning of competition period
                 compPeriodA = compPeriodA - compDiff; // Removing time from the compPeriod of A
                 
                 /* Collision */
                 if(compPeriodA == compPeriodB){
                     Clock = Clock + compPeriodA + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE; // Update clock to where ack should be received
-#if DEBUG
-                    printf("\t\t----->COLLISION A before B, CLOCK: %d\n", Clock);
-#endif
                     curBackoffA = 0;
                     curBackoffB = 0;
                     curCollisionsA++; // Know there is a collision, update counters
@@ -372,9 +319,6 @@ void ScenarioA_CSMA(Node* nodeA, Node* nodeB){
                     /* NodeA transmits first */
                     if(compPeriodA < compPeriodB){
                         Clock = Clock + compPeriodA + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE; // Update clock till the end of transmission
-#if DEBUG
-                        printf("\t\t->AB SUCCESS A, CLOCK: %d, Comp A %d\n", Clock, compPeriodA);
-#endif
                         slots_usedA += DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE;
                         packet_successA++; // successful packet transmit
                         curCollisionsA = 0;
@@ -386,9 +330,6 @@ void ScenarioA_CSMA(Node* nodeA, Node* nodeB){
                     } /* NodeB transmits first */
                     else{
                         Clock = Clock + compPeriodB + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE; // Update clock till the end of transmission
-#if DEBUG
-                        printf("\t\t->AB SUCCESS B, CLOCK: %d, Comp B %d\n", Clock, compPeriodB);
-#endif
                         slots_usedB += DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE;
                         packet_successB++; // successful packet transmit
                         curCollisionsB = 0;
@@ -409,24 +350,14 @@ void ScenarioA_CSMA(Node* nodeA, Node* nodeB){
         /* Clock is ahead of nodeB packets and behind to nodeA packets */
         else if(Clock >= nodeB->packet_arrivals[curPacketB]){
             // DON'T UPDATE CLOCK
-#if DEBUG
-            printf("\t\t\t\tHERE: B before A\n");
-            printf("CURRENT BACKOFF B(%d)\n", curBackoffB);
-#endif
             if(curBackoffB == 0){
                 curBackoffB = Get_Backoff(curCollisionsB); // Gets the backoff time for B
-#if DEBUG
-                printf("NEW BACKOFF B(%d)\n", curBackoffB);
-#endif
             }
             int compPeriodB = DIFS_SIZE + curBackoffB; // Calculate competition period for B
             
             /* No possible competition or Collision/Packet race */
             if((Clock + compPeriodB) <= (nodeA->packet_arrivals[curPacketA] - 1)){
                 Clock = Clock + compPeriodB + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE; // Update clock after transmission
-#if DEBUG
-                printf("\t\t->BA-SUCCESS B, CLOCK: %d\n", Clock);
-#endif
                 slots_usedB += DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE;
                 packet_successB++; // successful packet transmit
                 curCollisionsB = 0;
@@ -434,32 +365,17 @@ void ScenarioA_CSMA(Node* nodeA, Node* nodeB){
                 curPacketB++;
             } /* Collision/Packet race */
             else{
-#if DEBUG
-                printf("CURRENT BACKOFF A(%d)\n", curBackoffA);
-#endif
                 if(curBackoffA == 0){
                     curBackoffA = Get_Backoff(curCollisionsA); // Gets the backoff time for A
-#if DEBUG
-                    printf("NEW BACKOFF A(%d)\n", curBackoffA);
-#endif
                 }
                 int compPeriodA = DIFS_SIZE + curBackoffA;
-#if DEBUG
-                printf("Comp Period A: %d\n", compPeriodA);
-#endif
                 int compDiff = nodeA->packet_arrivals[curPacketA] - Clock;
-#if DEBUG
-                printf("NEVER SHOULD BE NEG: %d\n", compDiff);
-#endif
                 Clock += compDiff; // Updating clock to beginning of competition period
                 compPeriodB = compPeriodB - compDiff; // Removing time from the compPeriod of B
                 
                 /* Collision */
                 if(compPeriodB == compPeriodA){
                     Clock = Clock + compPeriodB + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE; // Update clock to where ack should be received
-#if DEBUG
-                    printf("\t\t----->COLLISION B before A, CLOCK: %d\n", Clock);
-#endif
                     curBackoffA = 0;
                     curBackoffB = 0;
                     curCollisionsA++; // Know there is a collision, update counters
@@ -471,9 +387,6 @@ void ScenarioA_CSMA(Node* nodeA, Node* nodeB){
                     /* NodeB transmits first */
                     if(compPeriodB < compPeriodA){
                         Clock = Clock + compPeriodB + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE; // Update clock till the end of transmission
-#if DEBUG
-                        printf("\t\t->BA SUCCESS B, CLOCK: %d, Comp B %d\n", Clock, compPeriodB);
-#endif
                         slots_usedB += DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE;
                         packet_successB++; // successful packet transmit
                         curCollisionsB = 0;
@@ -485,9 +398,6 @@ void ScenarioA_CSMA(Node* nodeA, Node* nodeB){
                     } /* NodeA transmits first */
                     else{
                         Clock = Clock + compPeriodA + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE; // Update clock till the end of transmission
-#if DEBUG
-                        printf("\t\t->BA SUCCESS A, CLOCK: %d, Comp A %d\n", Clock, compPeriodA);
-#endif
                         slots_usedA += DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE;
                         packet_successA++; // successful packet transmit
                         curCollisionsA = 0;
@@ -507,10 +417,6 @@ void ScenarioA_CSMA(Node* nodeA, Node* nodeB){
         
         /* Clock is behind both nodeA and nodeB packets */
         else{
-#if DEBUG
-            printf("\t\t\t\tHERE: Clock update\n");
-#endif
-            
             /* NodeA has a packet that comes first */
             if(nodeA->packet_arrivals[curPacketA] < nodeB->packet_arrivals[curPacketB]){
                 Clock += (nodeA->packet_arrivals[curPacketA] - Clock); // Update clock to catch it up
@@ -557,32 +463,14 @@ void ScenarioA_VCS(Node* nodeA, Node* nodeB){
     
     /* Loop till end of simulation */
     while(Clock < SIM_DURATION_CLOCK){
-        
-#if DEBUG
-        printf("\nNodeA: %d, NodeB: %d, CLock: %d\n", nodeA->packet_arrivals[curPacketA], nodeB->packet_arrivals[curPacketB], Clock);
-#endif
-        
         /* Clock is ahead of both packets */
         if(Clock >= nodeA->packet_arrivals[curPacketA] && Clock >= nodeB->packet_arrivals[curPacketB]){
             // DON'T UPDATE CLOCK
-#if DEBUG
-            printf("\t\t\t\tHERE: B equal A\n");
-            printf("CURRENT BACKOFF A(%d)\n", curBackoffA);
-#endif
             if(curBackoffA == 0){
                 curBackoffA = Get_Backoff(curCollisionsA); // Gets the backoff time
-#if DEBUG
-                printf("NEW BACKOFF A(%d)\n", curBackoffA);
-#endif
             }
-#if DEBUG
-            printf("CURRENT BACKOFF B(%d)\n", curBackoffB);
-#endif
             if(curBackoffB == 0){
                 curBackoffB = Get_Backoff(curCollisionsB);
-#if DEBUG
-                printf("NEW BACKOFF B(%d)\n", curBackoffB);
-#endif
             }
             
             int compPeriodA = curBackoffA;
@@ -592,9 +480,6 @@ void ScenarioA_VCS(Node* nodeA, Node* nodeB){
             /* Check if there will be a collision */
             if(compPeriodB == compPeriodA){ /* Collision */
                 Clock = Clock + compPeriodA + RTS_SIZE + SIFS_SIZE + CTS_SIZE; // Update clock to where ack should be received
-#if DEBUG
-                printf("\t\t----->COLLISION A equal B, CLOCK: %d\n", Clock);
-#endif
                 curBackoffA = 0;
                 curBackoffB = 0;
                 // There is a collision, update counters //
@@ -606,9 +491,6 @@ void ScenarioA_VCS(Node* nodeA, Node* nodeB){
                 /* NodeB transmits first successfully */
                 if(compPeriodB < compPeriodA){
                     Clock = Clock + compPeriodB + RTS_SIZE + 3 * SIFS_SIZE + CTS_SIZE + DATA_FRAME_SIZE_SLOTS + ACK_SIZE; // Update clock till end of transmission
-#if DEBUG
-                    printf("\t\t->SUCCESS B, CLOCK: %d\n", Clock);
-#endif
                     slots_usedB += RTS_SIZE + 3 * SIFS_SIZE + CTS_SIZE + DATA_FRAME_SIZE_SLOTS + ACK_SIZE;
                     packet_successB++; // successful packet transmit
                     curCollisionsB = 0;
@@ -620,9 +502,6 @@ void ScenarioA_VCS(Node* nodeA, Node* nodeB){
                 } /* NodeA transmits first successfully */
                 else{
                     Clock = Clock + compPeriodA + RTS_SIZE + 3 * SIFS_SIZE + CTS_SIZE + DATA_FRAME_SIZE_SLOTS + ACK_SIZE; // Update clock till end of transmission
-#if DEBUG
-                    printf("\t\t->SUCCESS A, CLOCK: %d\n", Clock);
-#endif
                     slots_usedA += RTS_SIZE + 3 * SIFS_SIZE + CTS_SIZE + DATA_FRAME_SIZE_SLOTS + ACK_SIZE;
                     packet_successA++; // successful packet transmit
                     curCollisionsA = 0;
@@ -640,24 +519,14 @@ void ScenarioA_VCS(Node* nodeA, Node* nodeB){
         /* Clock is ahead of nodeA packets and behind to nodeB packets */
         else if(Clock >= nodeA->packet_arrivals[curPacketA]){
             // DON'T UPDATE CLOCK
-#if DEBUG
-            printf("\t\t\t\tHERE: A before B\n");
-            printf("CURRENT BACKOFF A(%d)\n", curBackoffA);
-#endif
             if(curBackoffA == 0){
                 curBackoffA = Get_Backoff(curCollisionsA); // Gets the backoff time for A
-#if DEBUG
-                printf("NEW BACKOFF A(%d)\n", curBackoffA);
-#endif
             }
             int compPeriodA = DIFS_SIZE + curBackoffA; // Calculate competition period for A
             
             /* No possible competition or Collision/Packet race */
             if((Clock + compPeriodA) <= (nodeB->packet_arrivals[curPacketB] - 1)){
                 Clock = Clock + compPeriodA + RTS_SIZE + 3 * SIFS_SIZE + CTS_SIZE + DATA_FRAME_SIZE_SLOTS + ACK_SIZE; // Update clock after transmission
-#if DEBUG
-                printf("\t\t->AB-SUCCESS A, CLOCK: %d\n", Clock);
-#endif
                 slots_usedA += RTS_SIZE + 3 * SIFS_SIZE + CTS_SIZE + DATA_FRAME_SIZE_SLOTS + ACK_SIZE;
                 packet_successA++; // successful packet transmit
                 curCollisionsA = 0;
@@ -665,33 +534,17 @@ void ScenarioA_VCS(Node* nodeA, Node* nodeB){
                 curPacketA++;
             } /* Collision/Packet race */
             else{
-#if DEBUG
-                printf("CURRENT BACKOFF B(%d)\n", curBackoffB);
-#endif
                 if(curBackoffB == 0){
                     curBackoffB = Get_Backoff(curCollisionsB); // Gets the backoff time for B
-#if DEBUG
-                    printf("NEW BACKOFF B(%d)\n", curBackoffB);
-#endif
-                    
                 }
                 int compPeriodB = DIFS_SIZE + curBackoffB;
-#if DEBUG
-                printf("Comp Period B: %d\n", compPeriodB);
-#endif
                 int compDiff = nodeB->packet_arrivals[curPacketB] - Clock;
-#if DEBUG
-                printf("NEVER SHOULD BE NEG: %d\n", compDiff);
-#endif
                 Clock += compDiff; // Updating clock to beginning of competition period
                 compPeriodA = compPeriodA - compDiff; // Removing time from the compPeriod of A
                 
                 /* Collision */
                 if(compPeriodA == compPeriodB){
                     Clock = Clock + compPeriodA + RTS_SIZE + SIFS_SIZE + CTS_SIZE; // Update clock to where ack should be received
-#if DEBUG
-                    printf("\t\t----->COLLISION A before B, CLOCK: %d\n", Clock);
-#endif
                     curBackoffA = 0;
                     curBackoffB = 0;
                     curCollisionsA++; // Know there is a collision, update counters
@@ -703,9 +556,6 @@ void ScenarioA_VCS(Node* nodeA, Node* nodeB){
                     /* NodeA transmits first */
                     if(compPeriodA < compPeriodB){
                         Clock = Clock + compPeriodA + RTS_SIZE + 3 * SIFS_SIZE + CTS_SIZE + DATA_FRAME_SIZE_SLOTS + ACK_SIZE; // Update clock till the end of transmission
-#if DEBUG
-                        printf("\t\t->AB SUCCESS A, CLOCK: %d, Comp A %d\n", Clock, compPeriodA);
-#endif
                         slots_usedA += RTS_SIZE + 3 * SIFS_SIZE + CTS_SIZE + DATA_FRAME_SIZE_SLOTS + ACK_SIZE;
                         packet_successA++; // successful packet transmit
                         curCollisionsA = 0;
@@ -717,9 +567,6 @@ void ScenarioA_VCS(Node* nodeA, Node* nodeB){
                     } /* NodeB transmits first */
                     else{
                         Clock = Clock + compPeriodB + RTS_SIZE + 3 * SIFS_SIZE + CTS_SIZE + DATA_FRAME_SIZE_SLOTS + ACK_SIZE; // Update clock till the end of transmission
-#if DEBUG
-                        printf("\t\t->AB SUCCESS B, CLOCK: %d, Comp B %d\n", Clock, compPeriodB);
-#endif
                         slots_usedB += RTS_SIZE + 3 * SIFS_SIZE + CTS_SIZE + DATA_FRAME_SIZE_SLOTS + ACK_SIZE;
                         packet_successB++; // successful packet transmit
                         curCollisionsB = 0;
@@ -740,24 +587,14 @@ void ScenarioA_VCS(Node* nodeA, Node* nodeB){
         /* Clock is ahead of nodeB packets and behind to nodeA packets */
         else if(Clock >= nodeB->packet_arrivals[curPacketB]){
             // DON'T UPDATE CLOCK
-#if DEBUG
-            printf("\t\t\t\tHERE: B before A\n");
-            printf("CURRENT BACKOFF B(%d)\n", curBackoffB);
-#endif
             if(curBackoffB == 0){
                 curBackoffB = Get_Backoff(curCollisionsB); // Gets the backoff time for B
-#if DEBUG
-                printf("NEW BACKOFF B(%d)\n", curBackoffB);
-#endif
             }
             int compPeriodB = DIFS_SIZE + curBackoffB; // Calculate competition period for B
             
             /* No possible competition or Collision/Packet race */
             if((Clock + compPeriodB) <= (nodeA->packet_arrivals[curPacketA] - 1)){
                 Clock = Clock + compPeriodB + RTS_SIZE + 3 * SIFS_SIZE + CTS_SIZE + DATA_FRAME_SIZE_SLOTS + ACK_SIZE; // Update clock after transmission
-#if DEBUG
-                printf("\t\t->BA-SUCCESS B, CLOCK: %d\n", Clock);
-#endif
                 slots_usedB += RTS_SIZE + 3 * SIFS_SIZE + CTS_SIZE + DATA_FRAME_SIZE_SLOTS + ACK_SIZE;
                 packet_successB++; // successful packet transmit
                 curCollisionsB = 0;
@@ -765,32 +602,17 @@ void ScenarioA_VCS(Node* nodeA, Node* nodeB){
                 curPacketB++;
             } /* Collision/Packet race */
             else{
-#if DEBUG
-                printf("CURRENT BACKOFF A(%d)\n", curBackoffA);
-#endif
                 if(curBackoffA == 0){
                     curBackoffA = Get_Backoff(curCollisionsA); // Gets the backoff time for A
-#if DEBUG
-                    printf("NEW BACKOFF A(%d)\n", curBackoffA);
-#endif
                 }
                 int compPeriodA = DIFS_SIZE + curBackoffA;
-#if DEBUG
-                printf("Comp Period A: %d\n", compPeriodA);
-#endif
                 int compDiff = nodeA->packet_arrivals[curPacketA] - Clock;
-#if DEBUG
-                printf("NEVER SHOULD BE NEG: %d\n", compDiff);
-#endif
                 Clock += compDiff; // Updating clock to beginning of competition period
                 compPeriodB = compPeriodB - compDiff; // Removing time from the compPeriod of B
                 
                 /* Collision */
                 if(compPeriodB == compPeriodA){
                     Clock = Clock + compPeriodA + RTS_SIZE + SIFS_SIZE + CTS_SIZE; // Update clock to where ack should be received
-#if DEBUG
-                    printf("\t\t----->COLLISION B before A, CLOCK: %d\n", Clock);
-#endif
                     curBackoffA = 0;
                     curBackoffB = 0;
                     curCollisionsA++; // Know there is a collision, update counters
@@ -802,9 +624,6 @@ void ScenarioA_VCS(Node* nodeA, Node* nodeB){
                     /* NodeB transmits first */
                     if(compPeriodB < compPeriodA){
                         Clock = Clock + compPeriodB + RTS_SIZE + 3 * SIFS_SIZE + CTS_SIZE + DATA_FRAME_SIZE_SLOTS + ACK_SIZE; // Update clock till the end of transmission
-#if DEBUG
-                        printf("\t\t->BA SUCCESS B, CLOCK: %d, Comp B %d\n", Clock, compPeriodB);
-#endif
                         slots_usedB += RTS_SIZE + 3 * SIFS_SIZE + CTS_SIZE + DATA_FRAME_SIZE_SLOTS + ACK_SIZE;
                         packet_successB++; // successful packet transmit
                         curCollisionsB = 0;
@@ -816,9 +635,6 @@ void ScenarioA_VCS(Node* nodeA, Node* nodeB){
                     } /* NodeA transmits first */
                     else{
                         Clock = Clock + compPeriodA + RTS_SIZE + 3 * SIFS_SIZE + CTS_SIZE + DATA_FRAME_SIZE_SLOTS + ACK_SIZE; // Update clock till the end of transmission
-#if DEBUG
-                        printf("\t\t->BA SUCCESS A, CLOCK: %d, Comp A %d\n", Clock, compPeriodA);
-#endif
                         slots_usedA += RTS_SIZE + 3 * SIFS_SIZE + CTS_SIZE + DATA_FRAME_SIZE_SLOTS + ACK_SIZE;
                         packet_successA++; // successful packet transmit
                         curCollisionsA = 0;
@@ -838,10 +654,6 @@ void ScenarioA_VCS(Node* nodeA, Node* nodeB){
         
         /* Clock is behind both nodeA and nodeB packets */
         else{
-#if DEBUG
-            printf("\t\t\t\tHERE: Clock update\n");
-#endif
-            
             /* NodeA has a packet that comes first */
             if(nodeA->packet_arrivals[curPacketA] < nodeB->packet_arrivals[curPacketB]){
                 Clock += (nodeA->packet_arrivals[curPacketA] - Clock); // Update clock to catch it up
@@ -882,11 +694,8 @@ void ScenarioB_CSMA(Node* nodeA, Node* nodeB){
     int curPacketB = 0;
     int beginCompPeriodA = 0;
     int beginCompPeriodB = 0;
-    
     int mustRetransA = 0;
     int mustRetransB = 0;
-    
-    
     int curCollisionsA = 0;
     int curCollisionsB = 0;
     int totCollisions = 0;
@@ -897,11 +706,6 @@ void ScenarioB_CSMA(Node* nodeA, Node* nodeB){
     
     /* Loop till end of simulation */
     while(Clock < SIM_DURATION_CLOCK){
-        
-#if DEBUG
-        printf("\nNodeA: %d, NodeB: %d, CLock: %d\n", nodeA->packet_arrivals[curPacketA], nodeB->packet_arrivals[curPacketB], Clock);
-#endif
-        
         /* Clock is ahead of both packets */
         if(Clock >= nodeA->packet_arrivals[curPacketA] && Clock >= nodeB->packet_arrivals[curPacketB]){
             
@@ -1084,10 +888,6 @@ void ScenarioB_CSMA(Node* nodeA, Node* nodeB){
         /* Clock is behind both nodeA and nodeB packets */
         else{
             
-#if DEBUG
-            printf("->>>>>>>>>CLock behind both A and B: %d\n", Clock);
-#endif
-            
             /* NodeA has a packet that comes first */
             if(nodeA->packet_arrivals[curPacketA] < nodeB->packet_arrivals[curPacketB]){
                 Clock += (nodeA->packet_arrivals[curPacketA] - Clock); // Update clock to catch it up
@@ -1098,10 +898,6 @@ void ScenarioB_CSMA(Node* nodeA, Node* nodeB){
             else{
                 Clock += (nodeA->packet_arrivals[curPacketA] - Clock); // Update clock to catch it up
             }
-            
-#if DEBUG
-            printf("->>>>>>>>10>>>>>>>>>>>>>>>>>>>>>>CLOCK UPDATE: %d\n", Clock);
-#endif
         }
     }
 
