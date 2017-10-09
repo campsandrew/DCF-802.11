@@ -922,7 +922,7 @@ void ScenarioB_CSMA(Node* nodeA, Node* nodeB){
                 /* Node B has started transmission process */
                 if(ClockA == 0){
                     curBackoffA = Get_Backoff(curCollisionsA) + DIFS_SIZE; // Get backoff time for A;
-                    ClockA = Clock + curBackoffB + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE;
+                    ClockA = Clock + curBackoffA + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE;
                 }
                 beginCompPeriodB = Clock + curBackoffB;
                 beginCompPeriodA = Clock + curBackoffA;
@@ -936,7 +936,7 @@ void ScenarioB_CSMA(Node* nodeA, Node* nodeB){
                 
                 curBackoffA = Get_Backoff(curCollisionsA) + DIFS_SIZE; // Get backoff time for A
                 curBackoffB = Get_Backoff(curCollisionsB) + DIFS_SIZE; // Get backoff time for B
-                ClockA = Clock + curBackoffB + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE;
+                ClockA = Clock + curBackoffA + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE;
                 ClockB = Clock + curBackoffB + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE;
                 beginCompPeriodA = Clock + curBackoffA;
                 beginCompPeriodB = Clock + curBackoffB;
