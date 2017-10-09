@@ -21,8 +21,8 @@
 
 
 #define NUM_RATES 4
-#define NUM_TESTS 250
-#define RATE_OFFSET 1 // Either 1 or 2
+#define NUM_TESTS 500
+#define RATE_OFFSET 2 // Either 1 or 2
 
 #define DEBUG 0
 
@@ -53,6 +53,7 @@ int main(){
     double AvgThroughputA[NUM_RATES];
     double AvgThroughputC[NUM_RATES];
     double AvgFairnessIndex[NUM_RATES];
+    
     unsigned long AvgCollision2[NUM_RATES];
     unsigned long AvgSuccessA2[NUM_RATES];
     unsigned long AvgSuccessC2[NUM_RATES];
@@ -61,6 +62,24 @@ int main(){
     double AvgThroughputA2[NUM_RATES];
     double AvgThroughputC2[NUM_RATES];
     double AvgFairnessIndex2[NUM_RATES];
+    
+    unsigned long AvgCollision3[NUM_RATES];
+    unsigned long AvgSuccessA3[NUM_RATES];
+    unsigned long AvgSuccessC3[NUM_RATES];
+    unsigned long AvgSlotsUsedA3[NUM_RATES];
+    unsigned long AvgSlotsUsedC3[NUM_RATES];
+    double AvgThroughputA3[NUM_RATES];
+    double AvgThroughputC3[NUM_RATES];
+    double AvgFairnessIndex3[NUM_RATES];
+    
+    unsigned long AvgCollision4[NUM_RATES];
+    unsigned long AvgSuccessA4[NUM_RATES];
+    unsigned long AvgSuccessC4[NUM_RATES];
+    unsigned long AvgSlotsUsedA4[NUM_RATES];
+    unsigned long AvgSlotsUsedC4[NUM_RATES];
+    double AvgThroughputA4[NUM_RATES];
+    double AvgThroughputC4[NUM_RATES];
+    double AvgFairnessIndex4[NUM_RATES];
     
     unsigned long AvgPacketsA[NUM_RATES];
     unsigned long AvgPacketsC[NUM_RATES];
@@ -77,6 +96,7 @@ int main(){
         AvgFairnessIndex[j] = 0.0;
         AvgSlotsUsedA[j] = 0;
         AvgSlotsUsedC[j] = 0;
+        
         AvgCollision2[j] = 0;
         AvgSuccessA2[j] = 0;
         AvgSuccessC2[j] = 0;
@@ -85,6 +105,24 @@ int main(){
         AvgFairnessIndex2[j] = 0.0;
         AvgSlotsUsedA2[j] = 0;
         AvgSlotsUsedC2[j] = 0;
+        
+        AvgCollision3[j] = 0;
+        AvgSuccessA3[j] = 0;
+        AvgSuccessC3[j] = 0;
+        AvgThroughputA3[j] = 0;
+        AvgThroughputC3[j] = 0;
+        AvgFairnessIndex3[j] = 0.0;
+        AvgSlotsUsedA3[j] = 0;
+        AvgSlotsUsedC3[j] = 0;
+        
+        AvgCollision4[j] = 0;
+        AvgSuccessA4[j] = 0;
+        AvgSuccessC4[j] = 0;
+        AvgThroughputA4[j] = 0;
+        AvgThroughputC4[j] = 0;
+        AvgFairnessIndex4[j] = 0.0;
+        AvgSlotsUsedA4[j] = 0;
+        AvgSlotsUsedC4[j] = 0;
         
         AvgPacketsA[j] = 0;
         AvgPacketsC[j] = 0;
@@ -99,37 +137,41 @@ int main(){
             AvgPacketsA[i] = AvgPacketsA[i] + A->dist_len;
             AvgPacketsC[i] = AvgPacketsC[i] + C->dist_len;
             
-            /* TEST SIMULATIONS */
-            //ScenarioA_CSMA(A, C);
-            ScenarioB_VCS(A, C);
+            /* TEST 1 */
+            ScenarioA_CSMA(A, C);
             
             AvgSlotsUsedA[i] = AvgSlotsUsedA[i] + A->slots_used;
             AvgSlotsUsedC[i] = AvgSlotsUsedC[i] + C->slots_used;
-            
             AvgCollision[i] = AvgCollision[i] + A->packet_collision;
             AvgSuccessA[i] = AvgSuccessA[i] + A->packet_success;
             AvgSuccessC[i] = AvgSuccessC[i] + C->packet_success;
             
-            //ScenarioA_VCS(A, C);
-            //ScenarioB_VCS(A, C);
-            /*
-            FairnessIndex = ((double) A->slots_used / (double) C->slots_used); // Not an average
+            /* TEST 2 */
+            ScenarioA_VCS(A, C);
             
             AvgSlotsUsedA2[i] = AvgSlotsUsedA2[i] + A->slots_used;
             AvgSlotsUsedC2[i] = AvgSlotsUsedC2[i] + C->slots_used;
-            
-            AvgFairnessIndex2[i] = AvgFairnessIndex2[i] + FairnessIndex;
-            //printf("%f\n", AvgFairnessIndex2[1]);
-            
-            
             AvgCollision2[i] = AvgCollision2[i] + A->packet_collision;
             AvgSuccessA2[i] = AvgSuccessA2[i] + A->packet_success;
             AvgSuccessC2[i] = AvgSuccessC2[i] + C->packet_success;
-            */
-            //ScenarioB_CSMA(A, C);
-            //ScenarioB_VCS(A, C);
             
-            //printf("CHECK: %lu\n", AvgCollision[2]);
+            /* TEST 3 */
+            ScenarioB_CSMA(A, C);
+            
+            AvgSlotsUsedA3[i] = AvgSlotsUsedA3[i] + A->slots_used;
+            AvgSlotsUsedC3[i] = AvgSlotsUsedC3[i] + C->slots_used;
+            AvgCollision3[i] = AvgCollision3[i] + A->packet_collision;
+            AvgSuccessA3[i] = AvgSuccessA3[i] + A->packet_success;
+            AvgSuccessC3[i] = AvgSuccessC3[i] + C->packet_success;
+            
+            /* TEST 4 */
+            ScenarioB_VCS(A, C);
+            
+            AvgSlotsUsedA4[i] = AvgSlotsUsedA4[i] + A->slots_used;
+            AvgSlotsUsedC4[i] = AvgSlotsUsedC4[i] + C->slots_used;
+            AvgCollision4[i] = AvgCollision4[i] + A->packet_collision;
+            AvgSuccessA4[i] = AvgSuccessA4[i] + A->packet_success;
+            AvgSuccessC4[i] = AvgSuccessC4[i] + C->packet_success;
             
         }
     }
@@ -137,52 +179,77 @@ int main(){
     int k = 0;
     
     for(k = 0; k < NUM_RATES; k++){
+        
         // ScenarioA_CSMA
         AvgCollision[k] = (AvgCollision[k] / j);
         AvgSuccessA[k] = (AvgSuccessA[k] / j);
         AvgSuccessC[k] = (AvgSuccessC[k] / j);
-        AvgFairnessIndex[k] = ((double) AvgSlotsUsedA[k] / (double) AvgSlotsUsedC[k]);
         AvgSlotsUsedA[k] = (AvgSlotsUsedA[k] / j);
         AvgSlotsUsedC[k] = (AvgSlotsUsedC[k] / j);
-        
+        AvgFairnessIndex[k] = ((double) AvgSlotsUsedA[k] / (double) AvgSlotsUsedC[k]);
         AvgThroughputA[k] = ((AvgSuccessA[k] * DATA_FRAME_SIZE) / SIM_DURATION) / 1000000.0;
         AvgThroughputC[k] = ((AvgSuccessC[k] * DATA_FRAME_SIZE) / SIM_DURATION) / 1000000.0;
-        /*
+        
         // ScenarioA_VCS
         AvgCollision2[k] = (AvgCollision2[k] / j);
         AvgSuccessA2[k] = (AvgSuccessA2[k] / j);
         AvgSuccessC2[k] = (AvgSuccessC2[k] / j);
-        AvgFairnessIndex2[k] = (AvgFairnessIndex2[k] / (double) j);
         AvgSlotsUsedA2[k] = (AvgSlotsUsedA2[k] / j);
         AvgSlotsUsedC2[k] = (AvgSlotsUsedC2[k] / j);
-        
+        AvgFairnessIndex2[k] = ((double) AvgSlotsUsedA2[k] / (double) AvgSlotsUsedC2[k]);
         AvgThroughputA2[k] = ((AvgSuccessA2[k] * DATA_FRAME_SIZE) / SIM_DURATION) / 1000000.0;
         AvgThroughputC2[k] = ((AvgSuccessC2[k] * DATA_FRAME_SIZE) / SIM_DURATION) / 1000000.0;
-        */
+        
         // ScenarioB_CSMA
+        AvgCollision3[k] = (AvgCollision3[k] / j);
+        AvgSuccessA3[k] = (AvgSuccessA3[k] / j);
+        AvgSuccessC3[k] = (AvgSuccessC3[k] / j);
+        AvgSlotsUsedA3[k] = (AvgSlotsUsedA3[k] / j);
+        AvgSlotsUsedC3[k] = (AvgSlotsUsedC3[k] / j);
+        AvgFairnessIndex3[k] = ((double) AvgSlotsUsedA3[k] / (double) AvgSlotsUsedC3[k]);
+        AvgThroughputA3[k] = ((AvgSuccessA3[k] * DATA_FRAME_SIZE) / SIM_DURATION) / 1000000.0;
+        AvgThroughputC3[k] = ((AvgSuccessC3[k] * DATA_FRAME_SIZE) / SIM_DURATION) / 1000000.0;
+        
         // ScenarioB_VCS
+        AvgCollision4[k] = (AvgCollision4[k] / j);
+        AvgSuccessA4[k] = (AvgSuccessA4[k] / j);
+        AvgSuccessC4[k] = (AvgSuccessC4[k] / j);
+        AvgSlotsUsedA4[k] = (AvgSlotsUsedA4[k] / j);
+        AvgSlotsUsedC4[k] = (AvgSlotsUsedC4[k] / j);
+        AvgFairnessIndex4[k] = ((double) AvgSlotsUsedA4[k] / (double) AvgSlotsUsedC4[k]);
+        AvgThroughputA4[k] = ((AvgSuccessA4[k] * DATA_FRAME_SIZE) / SIM_DURATION) / 1000000.0;
+        AvgThroughputC4[k] = ((AvgSuccessC4[k] * DATA_FRAME_SIZE) / SIM_DURATION) / 1000000.0;
     }
     
     
-    printf("\n\n\n\t\t\t\t\tSTART CSMA\n");
+    printf("\n\n\n\t\t\t\tSTART Scenario A: CSMA\n");
     for(k = 0; k < NUM_RATES; k++){
-        
         printf("RATE: %d frames/sec\n\tThroughput Avg A: %f Mbps\n\tThroughput Avg C: %f Mbps\n\tFairness Index Avg: %f A/B\n\tCollision Avg: %lu Packets\n", Frame_Rates[k], AvgThroughputA[k], AvgThroughputC[k], AvgFairnessIndex[k], AvgCollision[k]);
         printf("\tSlots Used Avg A: %lu\n\tSlots Used Avg C: %lu\n", AvgSlotsUsedA[k], AvgSlotsUsedC[k]);
         printf("\tSuccess Avg A: %lu Packets\n\tSuccess Avg C: %lu Packets\n\n", AvgSuccessA[k], AvgSuccessC[k]);
-        
-        
     }
-    /*
-    printf("\n\n\n\t\t\t\t\tSTART VCS\n");
+    
+    printf("\n\n\n\t\t\t\tSTART Scenario A: VCS\n");
     for(k = 0; k < NUM_RATES; k++){
-        
         printf("RATE: %d frames/sec\n\tThroughput Avg A: %f Mbps\n\tThroughput Avg C: %f Mbps\n\tFairness Index Avg: %f A/B\n\tCollision Avg: %lu Packets\n", Frame_Rates[k], AvgThroughputA2[k], AvgThroughputC2[k], AvgFairnessIndex2[k], AvgCollision2[k]);
         printf("\tSlots Used Avg A: %lu\n\tSlots Used Avg C: %lu\n", AvgSlotsUsedA2[k], AvgSlotsUsedC2[k]);
         printf("\tSuccess Avg A: %lu Packets\n\tSuccess Avg C: %lu Packets\n\n", AvgSuccessA2[k], AvgSuccessC2[k]);
-        
     }
-    */
+    
+    printf("\n\n\n\t\t\t\tSTART Scenario B: CSMA\n");
+    for(k = 0; k < NUM_RATES; k++){
+        printf("RATE: %d frames/sec\n\tThroughput Avg A: %f Mbps\n\tThroughput Avg C: %f Mbps\n\tFairness Index Avg: %f A/B\n\tCollision Avg: %lu Packets\n", Frame_Rates[k], AvgThroughputA3[k], AvgThroughputC3[k], AvgFairnessIndex3[k], AvgCollision3[k]);
+        printf("\tSlots Used Avg A: %lu\n\tSlots Used Avg C: %lu\n", AvgSlotsUsedA3[k], AvgSlotsUsedC3[k]);
+        printf("\tSuccess Avg A: %lu Packets\n\tSuccess Avg C: %lu Packets\n\n", AvgSuccessA3[k], AvgSuccessC3[k]);
+    }
+    
+    printf("\n\n\n\t\t\t\tSTART Scenario B: VCS\n");
+    for(k = 0; k < NUM_RATES; k++){
+        printf("RATE: %d frames/sec\n\tThroughput Avg A: %f Mbps\n\tThroughput Avg C: %f Mbps\n\tFairness Index Avg: %f A/B\n\tCollision Avg: %lu Packets\n", Frame_Rates[k], AvgThroughputA4[k], AvgThroughputC4[k], AvgFairnessIndex4[k], AvgCollision4[k]);
+        printf("\tSlots Used Avg A: %lu\n\tSlots Used Avg C: %lu\n", AvgSlotsUsedA4[k], AvgSlotsUsedC4[k]);
+        printf("\tSuccess Avg A: %lu Packets\n\tSuccess Avg C: %lu Packets\n\n", AvgSuccessA4[k], AvgSuccessC4[k]);
+    }
+    
     /*
     printf("\nSTART CSMA\n");
     
@@ -976,7 +1043,7 @@ void ScenarioB_VCS(Node* nodeA, Node* nodeB){
             if(ClockB <= beginCompPeriodA){
                 
                 if(mustRetransB == 0){
-                    Clock = ClockB; // Update clock to end of transmission
+                    Clock = ClockB + DATA_FRAME_SIZE_SLOTS + 2 * SIFS_SIZE + ACK_SIZE; // Update clock to end of transmission
                     ClockB = 0;
                     slots_usedB += DATA_FRAME_SIZE_SLOTS + 2 * SIFS_SIZE + ACK_SIZE;
                     packet_successB++; // successful packet transmit
@@ -984,6 +1051,9 @@ void ScenarioB_VCS(Node* nodeA, Node* nodeB){
                     beginCompPeriodB = 0;
                     curPacketB++;
                     
+                    ClockA += DATA_FRAME_SIZE_SLOTS + 2 * SIFS_SIZE + ACK_SIZE;
+                    beginCompPeriodA += DATA_FRAME_SIZE_SLOTS + 2 * SIFS_SIZE + ACK_SIZE;
+                    curBackoffA += DATA_FRAME_SIZE_SLOTS + 2 * SIFS_SIZE + ACK_SIZE;
 /* ----------------------------------------- TRANS HERE SUCCESSFULLY ---------------------------------------- */
                 }
                 else{
@@ -997,7 +1067,7 @@ void ScenarioB_VCS(Node* nodeA, Node* nodeB){
             else if(ClockA <= beginCompPeriodB){
                 
                 if(mustRetransA == 0){
-                    Clock = ClockA; // Update clock to end of transmission
+                    Clock = ClockA + DATA_FRAME_SIZE_SLOTS + 2 * SIFS_SIZE + ACK_SIZE; // Update clock to end of transmission
                     ClockA = 0;
                     slots_usedA += DATA_FRAME_SIZE_SLOTS + 2 * SIFS_SIZE + ACK_SIZE;
                     packet_successA++; // successful packet transmit
@@ -1005,6 +1075,9 @@ void ScenarioB_VCS(Node* nodeA, Node* nodeB){
                     beginCompPeriodA = 0;
                     curPacketA++;
                     
+                    ClockB += DATA_FRAME_SIZE_SLOTS + 2 * SIFS_SIZE + ACK_SIZE;
+                    beginCompPeriodB += DATA_FRAME_SIZE_SLOTS + 2 * SIFS_SIZE + ACK_SIZE;
+                    curBackoffB += DATA_FRAME_SIZE_SLOTS + 2 * SIFS_SIZE + ACK_SIZE;
 /* ----------------------------------------- TRANS HERE SUCCESSFULLY ---------------------------------------- */
                 }
                 else{
@@ -1075,7 +1148,7 @@ void ScenarioB_VCS(Node* nodeA, Node* nodeB){
                 Clock = arrivalB; // Updates clock to where packet B comes
             } /* A can transmit without collision */
             else{
-                Clock = ClockA; // Advance main clock
+                Clock = ClockA + DATA_FRAME_SIZE_SLOTS + 2 * SIFS_SIZE + ACK_SIZE; // Advance main clock
                 ClockA = 0;
                 slots_usedA += DATA_FRAME_SIZE_SLOTS + 2 * SIFS_SIZE + ACK_SIZE;
                 packet_successA++; // successful packet transmit
@@ -1115,7 +1188,7 @@ void ScenarioB_VCS(Node* nodeA, Node* nodeB){
                 Clock = arrivalA; // Updates clock to where packet A comes
             } /* B can transmit without collision */
             else{
-                Clock = ClockB; // Advance main clock
+                Clock = ClockB + DATA_FRAME_SIZE_SLOTS + 2 * SIFS_SIZE + ACK_SIZE; // Advance main clock
                 ClockB = 0;
                 slots_usedB += DATA_FRAME_SIZE_SLOTS + 2 * SIFS_SIZE + ACK_SIZE;
                 packet_successB++; // successful packet transmit
@@ -1151,202 +1224,6 @@ void ScenarioB_VCS(Node* nodeA, Node* nodeB){
     nodeB->packet_success = packet_successB;
     nodeB->packet_collision = totCollisions;
     nodeB->slots_used = slots_usedB;
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    if(Clock >= nodeA->packet_arrivals[curPacketA] && Clock >= nodeB->packet_arrivals[curPacketB]){
-        // DON'T UPDATE CLOCK
-        if(curBackoffA == 0){
-            curBackoffA = Get_Backoff(curCollisionsA); // Gets the backoff time
-        }
-        if(curBackoffB == 0){
-            curBackoffB = Get_Backoff(curCollisionsB);
-        }
-        
-        int compPeriodA = curBackoffA;
-        int compPeriodB = curBackoffB;
-        Clock = Clock + DIFS_SIZE; // Update clock to beginning of competition period
-        
-        /* Check if there will be a collision */
-        if(compPeriodB == compPeriodA){ /* Collision */
-            Clock = Clock + compPeriodB + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE; // Update clock to where ack should be received
-            curBackoffA = 0;
-            curBackoffB = 0;
-            // There is a collision, update counters //
-            curCollisionsB++;
-            curCollisionsA++;
-            totCollisions++;
-        } /* If no collison, send which packet wins */
-        else{
-            /* NodeB transmits first successfully */
-            if(compPeriodB < compPeriodA){
-                Clock = Clock + compPeriodB + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE; // Update clock till end of transmission
-                slots_usedB += DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE;
-                packet_successB++; // successful packet transmit
-                curCollisionsB = 0;
-                curPacketB++;
-                
-                // Reduces backoff counter of packet that didnt send //
-                curBackoffA = curBackoffA - compPeriodB;
-                curBackoffB = 0;
-            } /* NodeA transmits first successfully */
-            else{
-                Clock = Clock + compPeriodA + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE; // Update clock till end of transmission
-                slots_usedA += DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE;
-                packet_successA++; // successful packet transmit
-                curCollisionsA = 0;
-                curPacketA++;
-                
-                /* Reduces backoff counter of packet that didnt send */
-                curBackoffB = curBackoffB - compPeriodA;
-                curBackoffA = 0;
-            }
-        }
-        
-        
-    }
-    
-    /* Clock is ahead of nodeA packets and behind to nodeB packets */
-    else if(Clock >= nodeA->packet_arrivals[curPacketA]){
-        // DON'T UPDATE CLOCK
-        if(curBackoffA == 0){
-            curBackoffA = Get_Backoff(curCollisionsA); // Gets the backoff time for A
-        }
-        int compPeriodA = DIFS_SIZE + curBackoffA; // Calculate competition period for A
-        
-        /* No possible competition or Collision/Packet race */
-        if((Clock + compPeriodA) <= (nodeB->packet_arrivals[curPacketB] - 1)){
-            Clock = Clock + compPeriodA + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE; // Update clock after transmission
-            slots_usedA += DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE;
-            packet_successA++; // successful packet transmit
-            curCollisionsA = 0;
-            curBackoffA = 0;
-            curPacketA++;
-        } /* Collision/Packet race */
-        else{
-            if(curBackoffB == 0){
-                curBackoffB = Get_Backoff(curCollisionsB); // Gets the backoff time for B
-            }
-            int compPeriodB = DIFS_SIZE + curBackoffB;
-            int compDiff = nodeB->packet_arrivals[curPacketB] - Clock;
-            Clock += compDiff; // Updating clock to beginning of competition period
-            compPeriodA = compPeriodA - compDiff; // Removing time from the compPeriod of A
-            
-            /* Collision */
-            if(compPeriodA == compPeriodB){
-                Clock = Clock + compPeriodA + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE; // Update clock to where ack should be received
-                curBackoffA = 0;
-                curBackoffB = 0;
-                curCollisionsA++; // Know there is a collision, update counters
-                curCollisionsB++;
-                totCollisions++;
-            } /* If no collison, send which packet wins */
-            else{
-                
-                /* NodeA transmits first */
-                if(compPeriodA < compPeriodB){
-                    Clock = Clock + compPeriodA + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE; // Update clock till the end of transmission
-                    slots_usedA += DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE;
-                    packet_successA++; // successful packet transmit
-                    curCollisionsA = 0;
-                    curPacketA++;
-                    
-                    /* Reduces backoff counter of packet that didnt send */
-                    curBackoffB = curBackoffB - (compPeriodA - DIFS_SIZE);
-                    curBackoffA = 0;
-                } /* NodeB transmits first */
-                else{
-                    Clock = Clock + compPeriodB + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE; // Update clock till the end of transmission
-                    slots_usedB += DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE;
-                    packet_successB++; // successful packet transmit
-                    curCollisionsB = 0;
-                    curPacketB++;
-                    
-                    /* Reduces backoff counter of packet that didnt send */
-                    if(compDiff < DIFS_SIZE){
-                        curBackoffA = (curBackoffA - compPeriodB) + 1;
-                    }else{
-                        curBackoffA = curBackoffA - compPeriodB;
-                    }
-                    curBackoffB = 0;
-                }
-            }
-        }
-    }
-    
-    /* Clock is ahead of nodeB packets and behind to nodeA packets */
-    else if(Clock >= nodeB->packet_arrivals[curPacketB]){
-        // DON'T UPDATE CLOCK
-        if(curBackoffB == 0){
-            curBackoffB = Get_Backoff(curCollisionsB); // Gets the backoff time for B
-        }
-        int compPeriodB = DIFS_SIZE + curBackoffB; // Calculate competition period for B
-        
-        /* No possible competition or Collision/Packet race */
-        if((Clock + compPeriodB) <= (nodeA->packet_arrivals[curPacketA] - 1)){
-            Clock = Clock + compPeriodB + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE; // Update clock after transmission
-            slots_usedB += DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE;
-            packet_successB++; // successful packet transmit
-            curCollisionsB = 0;
-            curBackoffB = 0;
-            curPacketB++;
-        } /* Collision/Packet race */
-        else{
-            if(curBackoffA == 0){
-                curBackoffA = Get_Backoff(curCollisionsA); // Gets the backoff time for A
-            }
-            int compPeriodA = DIFS_SIZE + curBackoffA;
-            int compDiff = nodeA->packet_arrivals[curPacketA] - Clock;
-            Clock += compDiff; // Updating clock to beginning of competition period
-            compPeriodB = compPeriodB - compDiff; // Removing time from the compPeriod of B
-            
-            /* Collision */
-            if(compPeriodB == compPeriodA){
-                Clock = Clock + compPeriodB + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE; // Update clock to where ack should be received
-                curBackoffA = 0;
-                curBackoffB = 0;
-                curCollisionsA++; // Know there is a collision, update counters
-                curCollisionsB++;
-                totCollisions++;
-            } /* If no collison, send which packet wins */
-            else{
-                
-                /* NodeB transmits first */
-                if(compPeriodB < compPeriodA){
-                    Clock = Clock + compPeriodB + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE; // Update clock till the end of transmission
-                    slots_usedB += DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE;
-                    packet_successB++; // successful packet transmit
-                    curCollisionsB = 0;
-                    curPacketB++;
-                    
-                    /* Reduces backoff counter of packet that didnt send */
-                    curBackoffA = curBackoffA - (compPeriodB - DIFS_SIZE);
-                    curBackoffB = 0;
-                } /* NodeA transmits first */
-                else{
-                    Clock = Clock + compPeriodA + DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE; // Update clock till the end of transmission
-                    slots_usedA += DATA_FRAME_SIZE_SLOTS + SIFS_SIZE + ACK_SIZE;
-                    packet_successA++; // successful packet transmit
-                    curCollisionsA = 0;
-                    curPacketA++;
-                    
-                    /* Reduces backoff counter of packet that didnt send */
-                    if(compDiff < DIFS_SIZE){
-                        curBackoffB = (curBackoffB - compPeriodA) + 1;
-                    }else{
-                        curBackoffB = curBackoffB - compPeriodA;
-                    }
-                    curBackoffA = 0;
-                }
-            }
-        }
-    }
     
 }
 
