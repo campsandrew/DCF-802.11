@@ -22,7 +22,7 @@
 
 #define NUM_RATES 4
 #define NUM_TESTS 250
-#define RATE_OFFSET 2 // Either 1 or 2
+#define RATE_OFFSET 1 // Either 1 or 2
 
 #define DEBUG 0
 
