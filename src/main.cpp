@@ -1050,9 +1050,11 @@ void ScenarioB_VCS(Node* nodeA, Node* nodeB){
                     beginCompPeriodB = 0;
                     curPacketB++;
                     
-                    ClockA += DATA_FRAME_SIZE_SLOTS + 2 * SIFS_SIZE + ACK_SIZE;
-                    beginCompPeriodA += DATA_FRAME_SIZE_SLOTS + 2 * SIFS_SIZE + ACK_SIZE;
-                    curBackoffA += DATA_FRAME_SIZE_SLOTS + 2 * SIFS_SIZE + ACK_SIZE;
+                    if(curBackoffA != 0){
+                        ClockA += DATA_FRAME_SIZE_SLOTS + 2 * SIFS_SIZE + ACK_SIZE;
+                        beginCompPeriodA += DATA_FRAME_SIZE_SLOTS + 2 * SIFS_SIZE + ACK_SIZE;
+                        curBackoffA += DATA_FRAME_SIZE_SLOTS + 2 * SIFS_SIZE + ACK_SIZE;
+                    }
 /* ----------------------------------------- TRANS HERE SUCCESSFULLY ---------------------------------------- */
                 }
                 else{
@@ -1074,9 +1076,12 @@ void ScenarioB_VCS(Node* nodeA, Node* nodeB){
                     beginCompPeriodA = 0;
                     curPacketA++;
                     
-                    ClockB += DATA_FRAME_SIZE_SLOTS + 2 * SIFS_SIZE + ACK_SIZE;
-                    beginCompPeriodB += DATA_FRAME_SIZE_SLOTS + 2 * SIFS_SIZE + ACK_SIZE;
-                    curBackoffB += DATA_FRAME_SIZE_SLOTS + 2 * SIFS_SIZE + ACK_SIZE;
+                    if(curBackoffB != 0){
+                        ClockB += DATA_FRAME_SIZE_SLOTS + 2 * SIFS_SIZE + ACK_SIZE;
+                        beginCompPeriodB += DATA_FRAME_SIZE_SLOTS + 2 * SIFS_SIZE + ACK_SIZE;
+                        curBackoffB += DATA_FRAME_SIZE_SLOTS + 2 * SIFS_SIZE + ACK_SIZE;
+                    }
+                    
 /* ----------------------------------------- TRANS HERE SUCCESSFULLY ---------------------------------------- */
                 }
                 else{
@@ -1156,7 +1161,11 @@ void ScenarioB_VCS(Node* nodeA, Node* nodeB){
                 curBackoffA = 0;
                 curPacketA++;
                 
-                
+                if(curBackoffB != 0){
+                    ClockB += DATA_FRAME_SIZE_SLOTS + 2 * SIFS_SIZE + ACK_SIZE;
+                    beginCompPeriodB += DATA_FRAME_SIZE_SLOTS + 2 * SIFS_SIZE + ACK_SIZE;
+                    curBackoffB += DATA_FRAME_SIZE_SLOTS + 2 * SIFS_SIZE + ACK_SIZE;
+                }
                 
 /* ----------------------------------------- TRANS HERE SUCCESSFULLY ---------------------------------------- */
             }
@@ -1195,6 +1204,12 @@ void ScenarioB_VCS(Node* nodeA, Node* nodeB){
                 beginCompPeriodB = 0;
                 curBackoffB = 0;
                 curPacketB++;
+                
+                if(curBackoffA != 0){
+                    ClockA += DATA_FRAME_SIZE_SLOTS + 2 * SIFS_SIZE + ACK_SIZE;
+                    beginCompPeriodA += DATA_FRAME_SIZE_SLOTS + 2 * SIFS_SIZE + ACK_SIZE;
+                    curBackoffA += DATA_FRAME_SIZE_SLOTS + 2 * SIFS_SIZE + ACK_SIZE;
+                }
                 
 /* ----------------------------------------- TRANS HERE SUCCESSFULLY ---------------------------------------- */
             }
